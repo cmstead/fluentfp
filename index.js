@@ -1,13 +1,36 @@
 (function (moduleFactory) {
     let isNode = typeof module !== undefined && typeof module.exports !== undefined
 
+    function callableFactory(fluentfp) {
+        return function (fn) {
+            const callable = fluentfp.call(fn);
+            const applyable = fluentfp.apply(fn);
+
+            fn.callWith = callable.with;
+            fn.callThrough = callable.through;
+            fn.applyWith = applyable.with;
+            fn.applyThrough = applyable.through;
+
+            return fn;
+        }
+    }
+
     if (isNode) {
         const signet = require('./signet-types');
         const matchlight = require('matchlight')(signet);
+        const fluentfp = moduleFactory(signet, matchlight.match);
+        const callableDecorator = callableFactory(fluentfp);
 
-        module.exports = moduleFactory(signet, matchlight.match);
+        require('./bin/fluentfpTypes')(signet, matchlight.match, callableDecorator, fluentfp);
+
+        module.exports = fluentfp;
     } else if (typeof signet === 'object') {
-        window.fluentfp = moduleFactory(signet, matchlight.match);
+        const fluentfp = moduleFactory(signet, matchlight.match);
+        const callableDecorator = callableFactory(fluentfp);
+
+        fluentfpTypes(signet, matchlight.match, callableDecorator, fluentfp);
+
+        window.fluentfp = fluentfp;
     } else {
         throw new Error('The module fluentfp requires Signet to run.');
     }
@@ -91,8 +114,16 @@
         }
     );
 
+    const identity = signet.enforce(
+        'value:* => *',
+        function identity(value) {
+            return value;
+        }
+    );
+
     return {
         apply: apply,
-        call: call
+        call: call,
+        identity: identity,
     };
 });
