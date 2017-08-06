@@ -32,10 +32,10 @@
   "homepage": "https://github.com/cmstead/fluentfp#readme",
   "dependencies": {
     "matchlight": "^1.2.0",
-    "signet": "^3.16.2"
+    "signet": "^4.1.0"
   },
   "engines": {
-      "node": ">=6.0.0"
+    "node": ">=6.0.0"
   },
   "devDependencies": {
     "approvals": "^2.1.2",

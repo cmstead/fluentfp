@@ -9,11 +9,10 @@
         window.fluentfpTypes = moduleFactory;
     }
 
-})(function (signet, match, callableDecorator, fluentfp) {
-    // source code here
+})(function (signet, callableDecorator, fluentfp) {
 
     const either = signet.enforce(
-        'valueType:type => function',
+        'valueType:type => defaultValue:* => value:* => *',
 
         callableDecorator(function either(valueType) {
             const isTypeOk = signet.isTypeOf(valueType);
@@ -31,7 +30,7 @@
     );
 
     const maybe = signet.enforce(
-        'valueType:type => *',
+        'valueType:type => function',
 
         callableDecorator(function maybe(valueType) {
             return either(valueType)(null);

@@ -1,5 +1,11 @@
 (function (moduleFactory) {
-    let isNode = typeof module !== undefined && typeof module.exports !== undefined
+    const isNode = typeof module !== undefined && typeof module.exports !== undefined
+
+    const fluentfpModules = {
+        fluentfpTypes: './bin/fluentfpTypes',
+        fluentfpCore: './bin/fluentfpCore'
+    };
+
 
     function callableFactory(fluentfp) {
         return function (fn) {
@@ -15,27 +21,44 @@
         }
     }
 
+    function buildFluentfp (signet, submodules) {
+        const fluentfp = moduleFactory(signet);
+        const callableDecorator = callableFactory(fluentfp);
+
+        submodules.forEach((submoduleFactory) => submoduleFactory(signet, callableDecorator, fluentfp));
+
+        return fluentfp;
+    }
+
+    function buildNodeSubmoduleArray () {
+        return Object.keys(fluentfpModules).reduce(function (modules, key) {
+            const modulePath = fluentfpModules[key];
+            modules.push(require(modulePath));
+            return modules
+        }, []);
+    }
+
+    function buildClientSubmoduleArray () {
+        return Object.keys(fluentfpModules).reduce(function (modules, key) {
+            modules.push(window[key]);
+            return modules
+        }, []);
+    }
+
     if (isNode) {
-        const signet = require('./signet-types');
-        const matchlight = require('matchlight')(signet);
-        const fluentfp = moduleFactory(signet, matchlight.match);
-        const callableDecorator = callableFactory(fluentfp);
+        const signet = require('signet')();
+        const submodules = buildNodeSubmoduleArray();
 
-        require('./bin/fluentfpTypes')(signet, matchlight.match, callableDecorator, fluentfp);
-
-        module.exports = fluentfp;
+        module.exports = buildFluentfp(signet, submodules);
     } else if (typeof signet === 'object') {
-        const fluentfp = moduleFactory(signet, matchlight.match);
-        const callableDecorator = callableFactory(fluentfp);
+        const submodules = buildClientSubmoduleArray();
 
-        fluentfpTypes(signet, matchlight.match, callableDecorator, fluentfp);
-
-        window.fluentfp = fluentfp;
+        window.fluentfp = buildFluentfp(signet, submodules);
     } else {
         throw new Error('The module fluentfp requires Signet to run.');
     }
 
-})(function (signet, match) {
+})(function (signet) {
     'use strict';
 
     const isArray = signet.isTypeOf('array');
@@ -77,11 +100,11 @@
 
     const apply = signet.enforce(
         'fn:function, values:[array] => *',
+
         function apply(fn, values) {
-            return match(values, (matchCase, matchDefault) => {
-                matchCase(isArray, (values) => fn.apply(null, values));
-                matchDefault(() => boxApplier(fn));
-            });
+            return isArray(values)
+                ? fn.apply(null, values)
+                : boxApplier(fn);
         }
     );
 
@@ -107,23 +130,14 @@
         function call(fn) {
             const slicedArgs = sliceFrom(1)(arguments);
 
-            return match(slicedArgs, (matchCase, matchDefault) => {
-                matchCase((args) => args.length === 0, () => boxCaller(fn));
-                matchDefault((args) => fn.apply(null, args));
-            });
-        }
-    );
-
-    const identity = signet.enforce(
-        'value:* => *',
-        function identity(value) {
-            return value;
+            return slicedArgs.length === 0
+                ? boxCaller(fn)
+                : fn.apply(null, slicedArgs);
         }
     );
 
     return {
         apply: apply,
         call: call,
-        identity: identity,
     };
 });
