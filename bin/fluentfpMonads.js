@@ -11,10 +11,10 @@
 
 })(function (signet, callableDecorator, fluentfp) {
 
-    const either = signet.enforce(
+    const either = callableDecorator(signet.enforce(
         'valueType:type => defaultValue:* => value:* => *',
 
-        callableDecorator(function either(valueType) {
+        function either(valueType) {
             const isTypeOk = signet.isTypeOf(valueType);
 
             function defaultHandler(defaultValue) {
@@ -26,16 +26,16 @@
             defaultHandler.withDefault = defaultHandler;
 
             return callableDecorator(defaultHandler);
-        })
-    );
+        }
+    ));
 
-    const maybe = signet.enforce(
+    const maybe = callableDecorator(signet.enforce(
         'valueType:type => function',
 
-        callableDecorator((valueType) => {
+        function (valueType) {
             return either(valueType)(null);
-        })
-    );
+        }
+    ));
 
     fluentfp.either = either;
     fluentfp.maybe = maybe;

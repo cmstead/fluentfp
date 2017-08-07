@@ -11,13 +11,23 @@
 
 })(function (signet, callableDecorator, fluentfp) {
 
-    const identity = signet.enforce(
+    const identity = callableDecorator(signet.enforce(
         'value:* => *',
 
-        callableDecorator(function identity(value) {
+        function identity(value) {
             return value;
-        })
-    );
+        }
+    ));
+
+    const always = callableDecorator(signet.enforce(
+        'value:* => *',
+
+        function always(value) {
+            return function () {
+                return value;
+            }
+        }
+    ));
 
     const functionOrIdentity = fluentfp.either('function')(identity);
 
@@ -39,7 +49,51 @@
         }
     );
 
+    compose.function = compose;
+
+    const isFunction = signet.isTypeOf('function');
+
+    function pipelineThroughFactory(pipe) {
+        return function (fns) {
+            return fns
+                .reduce((lastPipe, fn) => lastPipe.into(fn), pipe)
+                .exec();
+        }
+    }
+
+    const pipeFactory = signet.enforce(
+        'composite:function => array<function> => *',
+        function pipeFactory(composite) {
+            function pipe(fn) {
+                return pipeFactory(compose(fn, composite));
+            }
+
+            pipe.into = pipe;
+            pipe.exec = composite;
+            pipe.through = pipelineThroughFactory(pipe);
+
+            return pipe;
+        }
+    );
+
+    const pipeline = callableDecorator(signet.enforce(
+        'value:*, fn1:[function] => *',
+
+        function pipeline(value, fn1) {
+            const fns = fluentfp.slice(1)(arguments);
+            const pipe = pipeFactory(always(value));
+
+            return isFunction(fn1)
+                ? pipelineThroughFactory(pipe)(fns)
+                : pipe;
+        }
+    ));
+
+    pipeline.value = pipeline;
+
+    fluentfp.always = always;
     fluentfp.identity = identity;
     fluentfp.compose = compose;
+    fluentfp.pipeline = pipeline;
 
 });

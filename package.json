@@ -32,7 +32,7 @@
   "homepage": "https://github.com/cmstead/fluentfp#readme",
   "dependencies": {
     "matchlight": "^1.2.0",
-    "signet": "^4.1.0"
+    "signet": "^4.2.0"
   },
   "engines": {
     "node": ">=6.0.0"

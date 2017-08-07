@@ -66,30 +66,33 @@
     const isInt = signet.isTypeOf('int');
 
 
-    function slice(start, end) {
-        function sliceValues(values) {
-            const endIndex = isInt(end) ? end : values.length;
-            let result = [];
+    const slice = signet.enforce(
+        'start:int, end:[int] => values:object => array',
+        function slice(start, end) {
+            function sliceValues(values) {
+                const endIndex = isInt(end) ? end : values.length;
+                let result = [];
 
-            for (let i = start; i < endIndex; i++) {
-                result.push(values[i]);
+                for (let i = start; i < endIndex; i++) {
+                    result.push(values[i]);
+                }
+
+                return result;
             }
 
-            return result;
+            function applySlice(valuesArray) {
+                return sliceValues(valuesArray[0]);
+            }
+
+            sliceValues.callWith = sliceValues;
+            sliceValues.callThrough = sliceValues;
+            sliceValues.applyWith = applySlice;
+            sliceValues.applyThrough = applySlice;
+            sliceValues.array = sliceValues;
+
+            return sliceValues;
         }
-
-        function applySlice(valuesArray) {
-            return sliceValues(valuesArray[0]);
-        }
-
-        sliceValues.callWith = sliceValues;
-        sliceValues.callThrough = sliceValues;
-        sliceValues.applyWith = applySlice;
-        sliceValues.applyThrough = applySlice;
-        sliceValues.array = sliceValues;
-
-        return sliceValues;
-    }
+    );
 
     const sliceFrom = signet.enforce(
         'start:int => end:[int] => array',
@@ -170,6 +173,7 @@
 
     const call = signet.enforce(
         'fn:function => *',
+
         function call(fn) {
             const slicedArgs = slice(1)(arguments);
 
@@ -184,11 +188,6 @@
     return {
         apply: apply,
         call: call,
-        slice: signet.enforce(
-            'start:int, end:[int] ' +
-            '=> values:object ' +
-            '=> array',
-            callableDecorator(slice)
-        )
+        slice: callableDecorator(slice)
     };
 });

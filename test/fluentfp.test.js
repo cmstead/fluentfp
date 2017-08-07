@@ -141,6 +141,28 @@ describe('fluentfp', function () {
 
     });
 
+    describe('slice', function () {
+
+        it('should slice an array', function () {
+            const result = fluentfp.slice(1, 3)([1, 2, 3, 4, 5]);
+            assert.equal(result.toString(), '2,3');
+        });
+
+        it('should slice an array with a fluent API', function () {
+            const result = fluentfp
+                .slice
+                .from(1)
+                .to(5)
+                .callWith([1, 2, 3, 4, 5])
+                .filter((value) => value % 2 === 1)
+                .map((value) => value * 3)
+                .reduce((sum, value) => sum + value);
+
+            assert.equal(result.toString(), '24');
+        });
+
+    });
+
 });
 
 if (typeof global.runQuokkaMochaBdd === 'function') {

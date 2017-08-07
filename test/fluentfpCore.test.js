@@ -35,6 +35,14 @@ describe('fluentfpCore', function () {
 
     });
 
+    describe('always', function () {
+
+        it('should return a function which returns the original value', function () {
+            assert.equal(fluentfp.always(1)(), 1);
+        });
+
+    });
+
     describe('compose', function () {
 
         it('should compose two functions together', function () {
@@ -59,11 +67,43 @@ describe('fluentfpCore', function () {
 
     });
 
-    describe.skip('pipeline', function () {
+    describe('pipeline', function () {
 
         it('should pipe data through one function', function () {
             const result = fluentfp.pipeline(2, add(1));
             assert.equal(result, 3);
+        });
+
+        it('should pipe data through two functions', function () {
+            const result = fluentfp.pipeline(2, add(1), add(3));
+            assert.equal(result, 6);
+        });
+
+        it('should pipe data through multiple functions', function () {
+            const result = fluentfp
+                .pipeline
+                .value(2)
+                .into(add(1))
+                .into(add(3))
+                .into(add(5))
+                .into(add(7))
+                .exec();
+
+            assert.equal(result, 18);
+        });
+
+        it('should pipe through an array of functions', function () {
+            const result = fluentfp
+                .pipeline
+                .value(2)
+                .through([
+                    add(4),
+                    add(6),
+                    add(8),
+                    add(10)
+                ]);
+
+            assert.equal(result, 30);
         });
 
     });
