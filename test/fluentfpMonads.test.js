@@ -8,7 +8,7 @@ const assert = require('chai').assert;
 
 const fluentfp = require('../index.js');
 
-describe('fluentfpTypes', function () {
+describe('fluentfpMonads', function () {
     require('./test-utils/approvals-config');
 
     describe('either', function () {

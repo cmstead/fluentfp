@@ -6,7 +6,7 @@
     if (isNode) {
         module.exports = moduleFactory;
     } else {
-        window.fluentfpTypes = moduleFactory;
+        window.fluentfpMonads = moduleFactory;
     }
 
 })(function (signet, callableDecorator, fluentfp) {
@@ -18,9 +18,9 @@
             const isTypeOk = signet.isTypeOf(valueType);
 
             function defaultHandler(defaultValue) {
-                const valueHandler = (value) => isTypeOk(value) ? value : defaultValue;
-
-                return callableDecorator(valueHandler);
+                return callableDecorator(function (value) {
+                    return isTypeOk(value) ? value : defaultValue;
+                });
             }
 
             defaultHandler.withDefault = defaultHandler;
@@ -32,7 +32,7 @@
     const maybe = signet.enforce(
         'valueType:type => function',
 
-        callableDecorator(function maybe(valueType) {
+        callableDecorator((valueType) => {
             return either(valueType)(null);
         })
     );

@@ -9,7 +9,6 @@ const mocha = require('gulp-mocha');
 
 const sourceFiles = [
     'bin/**/*.js',
-    'signet-types.js',
     'index.js',
     '!node_modules/**'
 ];
