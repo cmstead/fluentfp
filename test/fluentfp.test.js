@@ -163,6 +163,38 @@ describe('fluentfp', function () {
 
     });
 
+    describe('partial', function () {
+
+        function add (a, b) {
+            return a + b;
+        }
+
+        it('should partially apply values to a function', function () {
+            const result = fluentfp.partial(add, 1)(2);
+            assert.equal(result, 3);
+        });
+
+        it('should support adding values to application', function () {
+            const result = fluentfp
+                .partial(add)
+                .bindValues(1)
+                .bindValues(5)();
+
+            assert.equal(result, 6);
+        });
+
+        it('should support a full fluent interface', function () {
+            const result = fluentfp
+                .partial
+                .function(add)
+                .bindValues(1, 2)
+                .exec();
+
+            assert.equal(result, 3);
+        });
+
+    });
+
 });
 
 if (typeof global.runQuokkaMochaBdd === 'function') {

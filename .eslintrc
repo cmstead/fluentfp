@@ -21,6 +21,7 @@
         "after": false,
         "beforeEach": false,
         "afterEach": false,
-        "signet": false
+        "signet": false,
+        "fluentfpEnforcer": false
     }
 }

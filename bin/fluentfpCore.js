@@ -11,89 +11,71 @@
 
 })(function (signet, callableDecorator, fluentfp) {
 
-    const identity = callableDecorator(signet.enforce(
-        'value:* => *',
-
-        function identity(value) {
-            return value;
-        }
-    ));
-
-    const always = callableDecorator(signet.enforce(
-        'value:* => *',
-
-        function always(value) {
-            return function () {
-                return value;
-            }
-        }
-    ));
+    const identity = (value) => value;
+    const always = (value) => () => value;
 
     const functionOrIdentity = fluentfp.either('function')(identity);
 
-    const compose = signet.enforce(
-        'fn1:function, fn2:[function] => * => *',
+    function composer(fn1, fn2) {
+        return function () {
+            const args = fluentfp.slice(0)(arguments);
+            return fn1(fluentfp.apply(fn2, args));
+        };
+    }
 
-        function compose(fn1, fn2) {
-            const safeFn2 = functionOrIdentity(fn2);
+    function composeThrough(fns) {
+        return callableDecorator(fns.reduce(composer, identity));
+    }
 
-            const composite = callableDecorator(function composite() {
-                const args = fluentfp.slice(0)(arguments);
+    function compose(fn1, fn2) {
+        const composite = arguments.length > 2
+            ? composeThrough(fluentfp.slice(0)(arguments))
+            : callableDecorator(composer(fn1, functionOrIdentity(fn2)))
 
-                return fn1(fluentfp.apply(safeFn2, args));
-            })
+        composite.with = (fn) => compose(composite, fn);
+        composite.through = (fns) => compose(composite, composeThrough(fns));
 
-            composite.with = (fn) => compose(composite, fn);
-
-            return composite;
-        }
-    );
+        return callableDecorator(composite);
+    }
 
     compose.function = compose;
+    compose.through = signet.enforce('fns:array<function> => * => *', composeThrough);
 
     const isFunction = signet.isTypeOf('function');
 
     function pipelineThroughFactory(pipe) {
-        return function (fns) {
-            return fns
-                .reduce((lastPipe, fn) => lastPipe.into(fn), pipe)
-                .exec();
-        }
+        return callableDecorator(function (fns) {
+            const composePipe = (lastPipe, fn) => lastPipe.into(fn)
+            return fns.reduce(composePipe, pipe)();
+        })
     }
 
-    const pipeFactory = signet.enforce(
-        'composite:function => array<function> => *',
-        function pipeFactory(composite) {
-            function pipe(fn) {
-                return pipeFactory(compose(fn, composite));
-            }
-
-            pipe.into = pipe;
-            pipe.exec = composite;
-            pipe.through = pipelineThroughFactory(pipe);
-
-            return pipe;
+    function pipeFactory(composite) {
+        function pipe(nextFn) {
+            return isFunction(nextFn)
+                ? pipeFactory(compose(nextFn, composite))
+                : composite();
         }
-    );
 
-    const pipeline = callableDecorator(signet.enforce(
-        'value:*, fn1:[function] => *',
+        pipe.into = pipe;
+        pipe.exec = composite;
+        pipe.through = pipelineThroughFactory(pipe);
 
-        function pipeline(value, fn1) {
-            const fns = fluentfp.slice(1)(arguments);
-            const pipe = pipeFactory(always(value));
+        return callableDecorator(pipe);
+    }
 
-            return isFunction(fn1)
-                ? pipelineThroughFactory(pipe)(fns)
-                : pipe;
-        }
-    ));
+    function pipeline(value, fn1) {
+        const pipe = pipeFactory(always(value));
+
+        return isFunction(fn1)
+            ? pipelineThroughFactory(pipe)(fluentfp.slice(1)(arguments))
+            : pipe;
+    }
 
     pipeline.value = pipeline;
 
-    fluentfp.always = always;
-    fluentfp.identity = identity;
-    fluentfp.compose = compose;
-    fluentfp.pipeline = pipeline;
-
+    fluentfp.always = callableDecorator(always);
+    fluentfp.identity = callableDecorator(identity);
+    fluentfp.compose = callableDecorator(compose);
+    fluentfp.pipeline = callableDecorator(pipeline);
 });

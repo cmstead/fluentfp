@@ -11,32 +11,24 @@
 
 })(function (signet, callableDecorator, fluentfp) {
 
-    const either = callableDecorator(signet.enforce(
-        'valueType:type => defaultValue:* => value:* => *',
+    function either(valueType) {
+        const isTypeOk = signet.isTypeOf(valueType);
 
-        function either(valueType) {
-            const isTypeOk = signet.isTypeOf(valueType);
-
-            function defaultHandler(defaultValue) {
-                return callableDecorator(function (value) {
-                    return isTypeOk(value) ? value : defaultValue;
-                });
-            }
-
-            defaultHandler.withDefault = defaultHandler;
-
-            return callableDecorator(defaultHandler);
+        function defaultHandler(defaultValue) {
+            return callableDecorator(function (value) {
+                return isTypeOk(value) ? value : defaultValue;
+            });
         }
-    ));
 
-    const maybe = callableDecorator(signet.enforce(
-        'valueType:type => function',
+        defaultHandler.withDefault = defaultHandler;
 
-        function (valueType) {
-            return either(valueType)(null);
-        }
-    ));
+        return callableDecorator(defaultHandler);
+    }
 
-    fluentfp.either = either;
-    fluentfp.maybe = maybe;
+    function maybe(valueType) {
+        return either(valueType)(null);
+    }
+
+    fluentfp.either = callableDecorator(either);
+    fluentfp.maybe = callableDecorator(maybe);
 });

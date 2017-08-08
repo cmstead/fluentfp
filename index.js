@@ -7,27 +7,29 @@
     };
 
 
-    function callableFactory(call, apply) {
+    function callableFactory(call, apply, partial) {
         return function (fn) {
             const callable = call(fn);
             const applyable = apply(fn);
+            const partiallyApplicable = partial(fn);
 
             fn.callWith = callable.with;
             fn.callThrough = callable.through;
             fn.applyWith = applyable.with;
             fn.applyThrough = applyable.through;
+            fn.bindValues = partiallyApplicable.bindValues;
 
             return fn;
         }
     }
 
-    function buildFluentfp(signet, submodules) {
+    function buildFluentfp(signet, submodules, fluentfpEnforcer) {
         const fluentfp = moduleFactory(signet, callableFactory);
-        const callableDecorator = callableFactory(fluentfp.call, fluentfp.apply);
+        const callableDecorator = callableFactory(fluentfp.call, fluentfp.apply, fluentfp.partial);
 
         submodules.forEach((submoduleFactory) => submoduleFactory(signet, callableDecorator, fluentfp));
 
-        return fluentfp;
+        return fluentfpEnforcer(signet, fluentfp);
     }
 
     function buildNodeSubmoduleArray() {
@@ -48,12 +50,13 @@
     if (isNode) {
         const signet = require('signet')();
         const submodules = buildNodeSubmoduleArray();
+        const fluentfpEnforcer = require('./bin/fluentfpEnforcer');
 
-        module.exports = buildFluentfp(signet, submodules);
+        module.exports = buildFluentfp(signet, submodules, fluentfpEnforcer);
     } else if (typeof signet === 'object') {
         const submodules = buildClientSubmoduleArray();
 
-        window.fluentfp = buildFluentfp(signet, submodules);
+        window.fluentfp = buildFluentfp(signet, submodules, fluentfpEnforcer);
     } else {
         throw new Error('The module fluentfp requires Signet to run.');
     }
@@ -66,48 +69,41 @@
     const isInt = signet.isTypeOf('int');
 
 
-    const slice = signet.enforce(
-        'start:int, end:[int] => values:object => array',
-        function slice(start, end) {
-            function sliceValues(values) {
-                const endIndex = isInt(end) ? end : values.length;
-                let result = [];
+    function slice(start, end) {
+        function sliceValues(values) {
+            const endIndex = isInt(end) ? end : values.length;
+            let result = [];
 
-                for (let i = start; i < endIndex; i++) {
-                    result.push(values[i]);
-                }
-
-                return result;
+            for (let i = start; i < endIndex; i++) {
+                result.push(values[i]);
             }
 
-            function applySlice(valuesArray) {
-                return sliceValues(valuesArray[0]);
-            }
-
-            sliceValues.callWith = sliceValues;
-            sliceValues.callThrough = sliceValues;
-            sliceValues.applyWith = applySlice;
-            sliceValues.applyThrough = applySlice;
-            sliceValues.array = sliceValues;
-
-            return sliceValues;
+            return result;
         }
-    );
 
-    const sliceFrom = signet.enforce(
-        'start:int => end:[int] => array',
-
-        function sliceFrom(start) {
-            function sliceTo(end) {
-                return slice(start, end);
-            }
-
-            sliceTo.to = sliceTo;
-            sliceTo.array = (values) => slice(start)(values);
-
-            return sliceTo;
+        function applySlice(valuesArray) {
+            return sliceValues(valuesArray[0]);
         }
-    );
+
+        sliceValues.callWith = sliceValues;
+        sliceValues.callThrough = sliceValues;
+        sliceValues.applyWith = applySlice;
+        sliceValues.applyThrough = applySlice;
+        sliceValues.array = sliceValues;
+
+        return sliceValues;
+    }
+
+    function sliceFrom(start) {
+        function sliceTo(end) {
+            return slice(start, end);
+        }
+
+        sliceTo.to = sliceTo;
+        sliceTo.array = (values) => slice(start)(values);
+
+        return sliceTo;
+    }
 
     slice.from = sliceFrom;
 
@@ -137,22 +133,18 @@
             return fn.apply(context, slice(0)(arguments));
         }
 
+        newFn.on = (context) => boxApplier(fn, context);
         newFn.with = (values) => fn.apply(context, values);
         newFn.through = applyThrough(fn);
-        newFn.on = (context) => boxApplier(fn, context);
 
         return newFn;
     }
 
-    const apply = signet.enforce(
-        'fn:function, values:[array] => *',
-
-        function apply(fn, values) {
-            return isArray(values)
-                ? fn.apply(null, values)
-                : boxApplier(fn);
-        }
-    );
+    function apply(fn, values) {
+        return isArray(values)
+            ? fn.apply(null, values)
+            : boxApplier(fn);
+    }
 
     function boxCaller(fn, context) {
         function newFn() {
@@ -164,30 +156,57 @@
             return applyThrough(fn, context)(args);
         }
 
+        newFn.on = (context) => boxCaller(fn, context);
         newFn.with = newFn;
         newFn.through = through;
-        newFn.on = (context) => boxCaller(fn, context);
 
         return newFn;
     }
 
-    const call = signet.enforce(
-        'fn:function => *',
+    function call(fn) {
+        const slicedArgs = slice(1)(arguments);
 
-        function call(fn) {
-            const slicedArgs = slice(1)(arguments);
+        return slicedArgs.length === 0
+            ? boxCaller(fn)
+            : fn.apply(null, slicedArgs);
+    }
 
-            return slicedArgs.length === 0
-                ? boxCaller(fn)
-                : fn.apply(null, slicedArgs);
+    function setArity(fn, arity) {
+        return Object.defineProperty(fn, 'length', {
+            writeable: false,
+            value: arity
+        });
+    }
+
+    function partial(fn) {
+        const initialArgs = slice(1)(arguments);
+        const arityDelta = fn.length - initialArgs.length;
+        const newArity = arityDelta > 0 ? arityDelta : 0;
+
+        function partialFn() {
+            const args = initialArgs.concat(slice(0)(arguments));
+            return apply(fn, args);
         }
-    );
 
-    const callableDecorator = callableFactory(call, apply);
+        function bindValues() {
+            const args = [fn].concat(initialArgs).concat(slice(0)(arguments));
+            return apply(partial, args);
+        }
+
+        partialFn.bindValues = bindValues;
+        partialFn.exec = () => partialFn();
+
+        return setArity(partialFn, newArity);
+    }
+
+    partial.function = partial;
+
+    const callableDecorator = callableFactory(call, apply, partial);
 
     return {
         apply: apply,
         call: call,
+        partial: partial,
         slice: callableDecorator(slice)
     };
 });
