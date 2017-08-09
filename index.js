@@ -7,17 +7,13 @@
     };
 
 
-    function callableFactory(call, apply, partial) {
+    function callableFactory(apply, partial, slice) {
         return function (fn) {
-            const callable = call(fn);
-            const applyable = apply(fn);
-            const partiallyApplicable = partial(fn);
-
-            fn.callWith = callable.with;
-            fn.callThrough = callable.through;
-            fn.applyWith = applyable.with;
-            fn.applyThrough = applyable.through;
-            fn.bindValues = partiallyApplicable.bindValues;
+            fn.applyWith = function (values) { return apply(fn, values); };
+            fn.applyThrough = function (values) { return apply(fn).through(values); };
+            fn.bindValues = function () { return apply(partial, [fn].concat(slice(0)(arguments))); };
+            fn.callWith = function () { return apply(fn, slice(0)(arguments)); };
+            fn.callThrough = function () { return apply(fn).through(slice(0)(arguments)); };
 
             return fn;
         }
@@ -25,7 +21,7 @@
 
     function buildFluentfp(signet, submodules, fluentfpEnforcer) {
         const fluentfp = moduleFactory(signet, callableFactory);
-        const callableDecorator = callableFactory(fluentfp.call, fluentfp.apply, fluentfp.partial);
+        const callableDecorator = callableFactory(fluentfp.apply, fluentfp.partial, fluentfp.slice);
 
         submodules.forEach((submoduleFactory) => submoduleFactory(signet, callableDecorator, fluentfp));
 
@@ -70,7 +66,7 @@
 
 
     function slice(start, end) {
-        function sliceValues(values) {
+        function sliceValues (values) {
             const endIndex = isInt(end) ? end : values.length;
             let result = [];
 
@@ -81,15 +77,7 @@
             return result;
         }
 
-        function applySlice(valuesArray) {
-            return sliceValues(valuesArray[0]);
-        }
-
         sliceValues.callWith = sliceValues;
-        sliceValues.callThrough = sliceValues;
-        sliceValues.applyWith = applySlice;
-        sliceValues.applyThrough = applySlice;
-        sliceValues.array = sliceValues;
 
         return sliceValues;
     }
@@ -201,12 +189,12 @@
 
     partial.function = partial;
 
-    const callableDecorator = callableFactory(call, apply, partial);
+    const callableDecorator = callableFactory(apply, partial, slice);
 
     return {
-        apply: apply,
-        call: call,
-        partial: partial,
+        apply: callableDecorator(apply),
+        call: callableDecorator(call),
+        partial: callableDecorator(partial),
         slice: callableDecorator(slice)
     };
 });

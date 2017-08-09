@@ -14,15 +14,20 @@
     function either(valueType) {
         const isTypeOk = signet.isTypeOf(valueType);
 
-        function defaultHandler(defaultValue) {
-            return callableDecorator(function (value) {
-                return isTypeOk(value) ? value : defaultValue;
+        const defaultHandler = callableDecorator(
+            function defaultHandler(defaultValue) {
+                function callWithValue (value) {
+                    return isTypeOk(value) ? value : defaultValue;
+                }
+
+                callWithValue.callWith = callWithValue;
+
+                return callWithValue;
             });
-        }
 
         defaultHandler.withDefault = defaultHandler;
 
-        return callableDecorator(defaultHandler);
+        return defaultHandler;
     }
 
     function maybe(valueType) {

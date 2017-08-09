@@ -11,6 +11,7 @@
 
 })(function (signet, callableDecorator, fluentfp) {
 
+    const isUndefined = signet.isTypeOf('undefined');
     const identity = (value) => value;
     const always = (value) => () => value;
 
@@ -23,14 +24,33 @@
         };
     }
 
+    function reduceOn(values, action, initial) {
+        const initialUndefined = isUndefined(initial);
+
+        let result = initialUndefined ? action[0] : initial;
+        let remainingValues = initialUndefined ? values.slice(1) : values
+
+        for (let i = 0; i < remainingValues.length; i++) {
+            result = action(result, remainingValues[i], i);
+        }
+
+        return result;
+    }
+
+    function foldl(action, initialValue) {
+        return callableDecorator(function (values) {
+            return reduceOn(values, action, initialValue);
+        });
+    }
+
     function composeThrough(fns) {
-        return callableDecorator(fns.reduce(composer, identity));
+        return reduceOn(fns, composer, identity);
     }
 
     function compose(fn1, fn2) {
         const composite = arguments.length > 2
             ? composeThrough(fluentfp.slice(0)(arguments))
-            : callableDecorator(composer(fn1, functionOrIdentity(fn2)))
+            : composer(fn1, functionOrIdentity(fn2))
 
         composite.with = (fn) => compose(composite, fn);
         composite.through = (fns) => compose(composite, composeThrough(fns));
@@ -39,15 +59,17 @@
     }
 
     compose.function = compose;
-    compose.through = signet.enforce('fns:array<function> => * => *', composeThrough);
+    compose.through = signet.enforce(
+        'fns:array<function> => * => *',
+        (fns) => callableDecorator(composeThrough(fns)));
 
     const isFunction = signet.isTypeOf('function');
 
     function pipelineThroughFactory(pipe) {
-        return callableDecorator(function (fns) {
-            const composePipe = (lastPipe, fn) => lastPipe.into(fn)
-            return fns.reduce(composePipe, pipe)();
-        })
+        return function (fns) {
+            const pipeInto = (pipeResult, fn) => pipeResult.into(fn);
+            return reduceOn(fns, pipeInto, pipe)();
+        };
     }
 
     function pipeFactory(composite) {
@@ -61,20 +83,21 @@
         pipe.exec = composite;
         pipe.through = pipelineThroughFactory(pipe);
 
-        return callableDecorator(pipe);
+        return pipe;
     }
 
     function pipeline(value, fn1) {
         const pipe = pipeFactory(always(value));
 
-        return isFunction(fn1)
+        return callableDecorator(isFunction(fn1)
             ? pipelineThroughFactory(pipe)(fluentfp.slice(1)(arguments))
-            : pipe;
+            : pipe);
     }
 
     pipeline.value = pipeline;
 
     fluentfp.always = callableDecorator(always);
+    fluentfp.foldl = callableDecorator(foldl);
     fluentfp.identity = callableDecorator(identity);
     fluentfp.compose = callableDecorator(compose);
     fluentfp.pipeline = callableDecorator(pipeline);

@@ -27,12 +27,6 @@ describe('fluentfpCore', function () {
             assert.equal(result, 11);
         });
 
-        it('should return a function which returns the original value', function () {
-            const result = fluentfp.identity.applyWith([11]);
-
-            assert.equal(result, 11);
-        });
-
     });
 
     describe('always', function () {
@@ -122,12 +116,9 @@ describe('fluentfpCore', function () {
                 .into(add(3))
                 .into(add(5))
                 .into(add(7))
-                .into
-                    .bindValues(add(9))
-                    .exec()
                 .exec();
 
-            assert.equal(result, 27);
+            assert.equal(result, 18);
         });
 
         it('should pipe through an array of functions', function () {

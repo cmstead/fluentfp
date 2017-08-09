@@ -12,16 +12,24 @@
 })(function (signet, fluentfp) {
 
     const signatures = {
+        // Execution Core
         apply: 'fn:function, values:[array] => *',
         call: 'fn:function => *',
         partial: 'fn:function => function',
-        slice: 'start:int, end:[int] => values:object => array',
+
+        // Core Functions
+        always: 'value:* => * => *',
+        compose: 'fn1:function, fn2:[function] => * => *',
+        identity: 'value:* => *',
+        pipeline: 'value:*, fn:[function] => *',
+
+        // Types and Type Management
         either: 'valueType:type => defaultValue:* => value:* => *',
         maybe: 'valueType:type => function',
-        always: 'value:* => * => *',
-        identity: 'value:* => *',
-        compose: 'fn1:function, fn2:[function] => * => *',
-        pipeline: 'value:*, fn:[function] => *'
+
+        // Array handling
+        foldl: 'action:function, initialValue:[*] => array<*> => *',
+        slice: 'start:int, end:[int] => values:object => array'
     };
 
     const isUndefined = signet.isTypeOf('undefined');
