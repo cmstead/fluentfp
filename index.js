@@ -3,27 +3,35 @@
 
     const fluentfpModules = {
         fluentfpMonads: './bin/fluentfpMonads',
-        fluentfpCore: './bin/fluentfpCore'
+        fluentfpCore: './bin/fluentfpCore',
+        fluentfpArray: './bin/fluentfpArray'
     };
 
 
-    function callableFactory(apply, partial, slice) {
+    function callableFactory(apply, partial, sliceFrom) {
         return function (fn) {
             fn.applyWith = function (values) { return apply(fn, values); };
             fn.applyThrough = function (values) { return apply(fn).through(values); };
-            fn.bindValues = function () { return apply(partial, [fn].concat(slice(0)(arguments))); };
-            fn.callWith = function () { return apply(fn, slice(0)(arguments)); };
-            fn.callThrough = function () { return apply(fn).through(slice(0)(arguments)); };
+            fn.bindValues = function () { return apply(partial, [fn].concat(sliceFrom(0, arguments))); };
+            fn.callWith = function () { return apply(fn, sliceFrom(0, arguments)); };
+            fn.callThrough = function () { return apply(fn).through(sliceFrom(0, arguments)); };
 
             return fn;
         }
     }
 
-    function buildFluentfp(signet, submodules, fluentfpEnforcer) {
-        const fluentfp = moduleFactory(signet, callableFactory);
-        const callableDecorator = callableFactory(fluentfp.apply, fluentfp.partial, fluentfp.slice);
+    function buildFluentfp(
+        signet,
+        submodules,
+        fluentfpEnforcer,
+        fluentfpTypes,
+        fluentfpHelpers) {
 
-        submodules.forEach((submoduleFactory) => submoduleFactory(signet, callableDecorator, fluentfp));
+        const fluentfp = moduleFactory(signet, callableFactory, fluentfpTypes, fluentfpHelpers);
+        const callableDecorator = callableFactory(fluentfp.apply, fluentfp.partial, fluentfpHelpers.sliceFrom);
+
+        submodules.forEach((submoduleFactory) =>
+            submoduleFactory(signet, callableDecorator, fluentfp, fluentfpHelpers));
 
         return fluentfpEnforcer(signet, fluentfp);
     }
@@ -46,64 +54,41 @@
     if (isNode) {
         const signet = require('signet')();
         const submodules = buildNodeSubmoduleArray();
-        const fluentfpEnforcer = require('./bin/fluentfpEnforcer');
+        const fluentfpTypes = require('./bin/helpers/fluentfpTypes')(signet);
+        const fluentfpHelpers = require('./bin/helpers/fluentfpHelpers')(signet);
+        const fluentfpEnforcer = require('./bin/helpers/fluentfpEnforcer');
 
-        module.exports = buildFluentfp(signet, submodules, fluentfpEnforcer);
+        module.exports = buildFluentfp(
+            signet,
+            submodules,
+            fluentfpEnforcer,
+            fluentfpTypes,
+            fluentfpHelpers);
     } else if (typeof signet === 'object') {
         const submodules = buildClientSubmoduleArray();
 
-        window.fluentfp = buildFluentfp(signet, submodules, fluentfpEnforcer);
+        window.fluentfp = buildFluentfp(
+            signet,
+            submodules,
+            fluentfpEnforcer,
+            fluentfpTypes(signet),
+            fluentfpHelpers(signet));
     } else {
         throw new Error('The module fluentfp requires Signet to run.');
     }
 
-})(function (signet, callableFactory) {
+})(function (signet, callableFactory, fluentfp, helpers) {
     'use strict';
-
-    const isArray = signet.isTypeOf('array');
-    const isFunction = signet.isTypeOf('function');
-    const isInt = signet.isTypeOf('int');
-
-
-    function slice(start, end) {
-        function sliceValues (values) {
-            const endIndex = isInt(end) ? end : values.length;
-            let result = [];
-
-            for (let i = start; i < endIndex; i++) {
-                result.push(values[i]);
-            }
-
-            return result;
-        }
-
-        sliceValues.callWith = sliceValues;
-
-        return sliceValues;
-    }
-
-    function sliceFrom(start) {
-        function sliceTo(end) {
-            return slice(start, end);
-        }
-
-        sliceTo.to = sliceTo;
-        sliceTo.array = (values) => slice(start)(values);
-
-        return sliceTo;
-    }
-
-    slice.from = sliceFrom;
 
     function partitionAtIndex(length, values) {
         return [
-            slice(0, length)(values),
-            slice(length)(values)
+            helpers.slice(0, length, values),
+            helpers.sliceFrom(length, values)
         ];
     }
 
     function applyOrReturn(result, rest) {
-        return isFunction(result) && rest.length > 0
+        return fluentfp.isFunction(result) && rest.length > 0
             ? applyThrough(result)(rest)
             : result;
     }
@@ -118,7 +103,7 @@
 
     function boxApplier(fn, context) {
         function newFn() {
-            return fn.apply(context, slice(0)(arguments));
+            return fn.apply(context, helpers.sliceFrom(0, arguments));
         }
 
         newFn.on = (context) => boxApplier(fn, context);
@@ -129,18 +114,18 @@
     }
 
     function apply(fn, values) {
-        return isArray(values)
+        return fluentfp.isArray(values)
             ? fn.apply(null, values)
             : boxApplier(fn);
     }
 
     function boxCaller(fn, context) {
         function newFn() {
-            return fn.apply(context, slice(0)(arguments));
+            return fn.apply(context, helpers.sliceFrom(0, arguments));
         }
 
         function through() {
-            const args = slice(0)(arguments);
+            const args = helpers.sliceFrom(0, arguments);
             return applyThrough(fn, context)(args);
         }
 
@@ -152,7 +137,7 @@
     }
 
     function call(fn) {
-        const slicedArgs = slice(1)(arguments);
+        const slicedArgs = helpers.sliceFrom(1, arguments);
 
         return slicedArgs.length === 0
             ? boxCaller(fn)
@@ -167,17 +152,17 @@
     }
 
     function partial(fn) {
-        const initialArgs = slice(1)(arguments);
+        const initialArgs = helpers.sliceFrom(1, arguments);
         const arityDelta = fn.length - initialArgs.length;
         const newArity = arityDelta > 0 ? arityDelta : 0;
 
         function partialFn() {
-            const args = initialArgs.concat(slice(0)(arguments));
+            const args = initialArgs.concat(helpers.sliceFrom(0, arguments));
             return apply(fn, args);
         }
 
         function bindValues() {
-            const args = [fn].concat(initialArgs).concat(slice(0)(arguments));
+            const args = [fn].concat(initialArgs).concat(helpers.sliceFrom(0, arguments));
             return apply(partial, args);
         }
 
@@ -189,12 +174,12 @@
 
     partial.function = partial;
 
-    const callableDecorator = callableFactory(apply, partial, slice);
+    console.log(typeof helpers.sliceFrom);
+    const callableDecorator = callableFactory(apply, partial, helpers.sliceFrom);
 
-    return {
-        apply: callableDecorator(apply),
-        call: callableDecorator(call),
-        partial: callableDecorator(partial),
-        slice: callableDecorator(slice)
-    };
+    fluentfp.apply = callableDecorator(apply);
+    fluentfp.call = callableDecorator(call);
+    fluentfp.partial = callableDecorator(partial);
+
+    return fluentfp;
 });

@@ -25,19 +25,37 @@
 
         // Types and Type Management
         either: 'valueType:type => defaultValue:* => value:* => *',
-        maybe: 'valueType:type => function',
+        maybe: 'valueType:type => value:* => maybe<value:*>',
 
         // Array handling
-        foldl: 'action:function, initialValue:[*] => array<*> => *',
-        slice: 'start:int, end:[int] => values:object => array'
+        filter: 'predicate:function<* => boolean> => values:array<*> => array<*>',
+        foldl: 'action:function, initialValue:[*] => values:array<*> => *',
+        push: 'values:array<*> => value:* => values:array<*>',
+        slice: 'start:int, end:[int] => values:variant<arguments, array<*>> => array<*>'
     };
 
-    const isUndefined = signet.isTypeOf('undefined');
+    const typeCheckSignature = 'value:* => boolean';
+    const typeCheckKeys = [
+        'isFunction',
+        'isInt',
+        'isArray',
+        'isObject',
+        'isObjectInstance',
+        'isString',
+        'isUndefined'
+    ];
+
+    typeCheckKeys.forEach(function (key) {
+        const tempSignature = fluentfp[key].signature;
+        if(!fluentfp.isString(tempSignature)) {
+            fluentfp[key] = signet.sign(typeCheckSignature, fluentfp[key]);
+        }
+    });
 
     Object.keys(fluentfp).forEach(function (key) {
         const signature = signatures[key];
 
-        if (!isUndefined(signature)) {
+        if (!fluentfp.isUndefined(signature)) {
             fluentfp[key] = signet.enforce(signature, fluentfp[key]);
         }
     });
