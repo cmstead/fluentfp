@@ -30,7 +30,7 @@
         // Array handling
         filter: 'predicate:function<* => boolean> => values:array<*> => array<*>',
         foldl: 'action:function, initialValue:[*] => values:array<*> => *',
-        push: 'values:array<*> => value:* => values:array<*>',
+        _push: 'values:array<*> => value:* => values:array<*>',
         slice: 'start:int, end:[int] => values:variant<arguments, array<*>> => array<*>'
     };
 

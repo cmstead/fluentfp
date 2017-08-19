@@ -102,6 +102,93 @@ describe('fluentfpArray', function () {
             assert.equal(result.toString(), '1,2,3,4,5');
         });
 
+        it('should concat a value into an array', function () {
+            const result = fluentfp.concat([1, 2, 3, 4]).with([5]);
+            assert.equal(result.toString(), '1,2,3,4,5');
+        });
+
+    });
+
+    describe('some', function () {
+        
+        it('should return true if at least one element matches predicate', function () {
+            const result = fluentfp.some((value) => value % 2 === 0)([1, 2, 3, 4]);
+            assert.equal(result, true);
+        });
+
+        it('should return false if no element matches predicate', function () {
+            const result = fluentfp.some((value) => value % 2 === 0)([1, 3]);
+            assert.equal(result, false);
+        });
+
+        it('should have a fluent API', function () {
+            const result = fluentfp.some((value) => value % 2 === 0).in([1, 2, 3, 4]);
+            assert.equal(result, true);
+        });
+
+    });
+
+    describe('none', function () {
+        
+        it('should return true if no elements match predicate', function () {
+            const result = fluentfp.none((value) => value === false)([1, 2, 3, 4]);
+            assert.equal(result, true);
+        });
+
+        it('should return false if some elements match predicate', function () {
+            const result = fluentfp.none((value) => value === false)([1, 2, false, 4]);
+            assert.equal(result, false);
+        });
+
+        it('should should support a fluent API', function () {
+            const result = fluentfp.none((value) => value === false).in([1, 2, 3, 4]);
+            assert.equal(result, true);
+        });
+
+    });
+
+    describe('all', function () {
+        
+        it('should return true when all elements match check', function () {
+            const result = fluentfp.all(value => value % 2 === 0)([2, 4, 6, 8]);
+            assert.equal(result, true);
+        });
+
+        it('should return false when not all elements match check', function () {
+            const result = fluentfp.all(value => value % 2 === 0)([2, 4, 5, 8]);
+            assert.equal(result, false);
+        });
+
+        it('should have a fluent API', function () {
+            const result = fluentfp.all(value => value % 2 === 0).in([2, 4, 5, 8]);
+            assert.equal(result, false);
+        });
+
+    });
+
+    describe('sort', function () {
+        
+        it('should sort an array', function () {
+            const result = fluentfp.sort()([5, 4, 3, 2, 1]);
+            assert.equal(result.toString(), '1,2,3,4,5');
+        });
+
+        it('should sort an array with sorting function', function () {
+            const result = fluentfp.sort((a, b) => b - a)([1, 2, 3, 4, 5]);
+            assert.equal(result.toString(), '5,4,3,2,1');
+        });
+
+        it('should not modify original array', function () {
+            const originalValues = [1, 2, 3, 4, 5];
+            fluentfp.sort((a, b) => b - a)(originalValues);
+            assert.equal(originalValues.toString(), '1,2,3,4,5');
+        });
+
+        it('should have a fluent API', function () {
+            const result = fluentfp.sort.with().over([5, 4, 3, 2, 1]);
+            assert.equal(result.toString(), '1,2,3,4,5');
+        });
+
     });
 
     describe('Array decoration', function () {
@@ -117,12 +204,12 @@ describe('fluentfpArray', function () {
                 .through([
                     fluentfp.slice(0),
 
-                    (values) => fluentfp._push(values)(9),
-                    (values) => fluentfp.concat(values)([10]),
+                    (values) => fluentfp._push.into(values).with(9),
+                    (values) => fluentfp.concat.onto(values).with([10]),
 
-                    fluentfp.filter(isEven),
-                    fluentfp.map(divideBy2),
-                    fluentfp.foldl(add, 0)
+                    fluentfp.filter.with(isEven),
+                    fluentfp.map.with(divideBy2),
+                    fluentfp.foldl.with(add, 0)
                 ]);
 
             const result = fluentfp
@@ -131,11 +218,12 @@ describe('fluentfpArray', function () {
                 .onArray(originalValues)
 
                 ._push(9)
-                .fluentConcat([10])
+                .sortWith((a, b) => b - a)
+                .concatWith([10])
 
-                .fluentFilter(isEven)
-                .fluentMap(divideBy2)
-                .fluentFoldl(add, 0);
+                .filterOn(isEven)
+                .mapOn(divideBy2)
+                .foldlOn(add, 0);
 
             assert.equal(result, theoryResult);
         });
