@@ -59,6 +59,24 @@ describe('core-functions', function () {
         });
 
     });
+    
+    const addThreeNums = a => b => c => a + b + c;
+
+    describe('applyThrough', function() {
+
+        it('should apply through a curried function', function() {
+            assert.equal(coreFunctions.applyThrough(addThreeNums, [1, 3, 5]), 9);
+        });
+
+    });
+
+    describe('callThrough', function() {
+        
+        it('should call through a curried function', function() {
+            assert.equal(coreFunctions.callThrough(addThreeNums, 2, 4, 6), 12);
+        });
+
+    });
 
 });
 

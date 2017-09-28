@@ -24,19 +24,24 @@ describe('core-monads', function () {
         });
 
         it('should throw an error if default value is not correct type', function() {
-            assert.throws(() => coreMonads.either('string', 1234)('bar'), 'Unacceptable either default, must be null or specified type');
+            const testFn = () => coreMonads.either('string', 1234)('bar');
+            const message = 'Unacceptable either default, must be null or specified type';
+
+            assert.throws(testFn, message);
         });
 
     });
-    
-    describe('maybe', function() {
-        
-        it('should return null if user value is the wrong type', function() {
-            assert.equal(coreMonads.maybe('string', 999), null);
-        });
 
-        it('should return user value if it is the right type', function() {
-            assert.equal(coreMonads.maybe('string', 'foo'), 'foo');
+    describe('meither', function () {
+
+        it('should return default value if user value is wrong type', function () {
+            const result = coreMonads.meither('string', (value) => value + '!', () => 'foo')(null);
+            assert.equal(result, 'foo');
+        });
+        
+        it('should return user value if it is the correct type', function() {
+            const result = coreMonads.meither('string', (value) => value + '!', () => 'foo')('bar')
+            assert.equal(result, 'bar!');
         });
 
     });

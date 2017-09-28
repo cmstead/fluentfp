@@ -15,28 +15,21 @@
         return signet.isTypeOf('function')(value.map);
     }
 
-    function isWhichType(value, whichTypeValue) {
-        return value.whichType === whichTypeValue;
+    function hasTypeName (typeName) {
+        return function (value) {
+            return value.toString().indexOf(typeName) > -1;
+        }
     }
-
-    function isInnerType(value, outerType) {
-        return value.innerType === outerType;
-    }
-
-    function isNone(value) {
-        return isWhichType(value, 'None');
-    }
-
-    function isMaybe(value, options) {
-        return isWhichType(value, 'Maybe') && isInnerType(value, options[0]);
-    }
-
-    signet.extend('mappable', isMappable);
-
-    signet.subtype('mappable')('None', isNone);
-    signet.subtype('mappable')('Maybe', isMaybe);
 
     signet.alias('fluentType', 'variant<type, function>');
+    signet.alias('referencible', 'not<variant<null, undefined>>');
+    
+    signet.subtype('referencible')('mappable', isMappable);
+
+    signet.subtype('mappable')('Just', hasTypeName('Just'));
+    signet.subtype('mappable')('Maybe', hasTypeName('Maybe'));
+    signet.subtype('mappable')('Nothing', hasTypeName('Nothing'));
+
 
     return signet;
 

@@ -3,48 +3,59 @@
 
     if (isNode) {
         const signet = require('./signet-types');
-        const coreTyping = require('./core-typing');
+        const coreFunctions = require('./core-functions');
+        const corePredicates = require('./core-predicates');
 
-        module.exports = moduleFactory(signet, coreTyping);
+        module.exports = moduleFactory(signet, coreFunctions, corePredicates);
     } else {
-        window.coreMonads = moduleFactory(window.signet, window.coreTyping);
+        window.coreMonads = moduleFactory(window.signet, window.coreFunctions, window.corePredicates);
     }
 
-})(function (signet, coreTyping) {
+})(function (signet, coreFunctions, corePredicates) {
     'use strict';
 
+    const isNull = corePredicates.isNull;
+    const identity = coreFunctions.identity;
+
     function acceptableEitherType(type, value) {
-        return signet.isTypeOf('null')(value) || signet.isTypeOf(type)(value);
+        return isNull(value) || signet.isTypeOf(type)(value);
     }
 
-    const badDefaultMessage = 'Unacceptable either default, must be null or specified type';
+    function throwOnBadDefault(type, defaultValue, errorMessage) {
+        if (!acceptableEitherType(type, defaultValue)) {
+            throw new Error(errorMessage);
+        }
+
+        return defaultValue;
+    }
+
+    const meither = (type, transformer, defaultTransformer) =>
+        (testValue) =>
+            signet.isTypeOf(type)(testValue)
+                ? transformer(testValue)
+                : defaultTransformer(testValue);
 
     const either = (type, defaultValue) => {
-        if (!acceptableEitherType(type, defaultValue)) {
-            throw new Error(badDefaultMessage);
-        }
+        const errorMessage = 'Unacceptable either default, must be null or specified type';
+        throwOnBadDefault(type, defaultValue, errorMessage);
 
-        return (testValue) => {
-            return signet.isTypeOf(type)(testValue) ? testValue : defaultValue;
-        }
+        const eitherable = meither(type, identity, () => defaultValue);
+
+        return testValue => eitherable(testValue);
     }
-
-    function maybe(type, testValue) {
-        return either(type, null)(testValue);
-    }
-
-    (coreTyping);
-    // function some(value) {
-    //     if()
-    // }
 
     return {
         either: signet.enforce(
             'type:fluentType, defaultValue:* => testValue:* => *',
             either),
-        maybe: signet.enforce(
-            'type:fluentType, testValue:* => *',
-            maybe)
+
+        meither: signet.enforce(
+            'type: fluentType, ' +
+            'transformer: function<* => *>, ' +
+            'defaultTransformer: function<* => *> ' +
+            '=> testValue: * ' +
+            '=> *',
+            meither)
     };
 
 });
