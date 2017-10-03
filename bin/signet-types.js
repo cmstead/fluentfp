@@ -24,11 +24,11 @@
     signet.alias('fluentType', 'variant<type, function>');
     signet.alias('referencible', 'not<variant<null, undefined>>');
     
-    signet.subtype('referencible')('mappable', isMappable);
+    signet.subtype('referencible')('Mappable', isMappable);
 
-    signet.subtype('mappable')('Just', hasTypeName('Just'));
-    signet.subtype('mappable')('Maybe', hasTypeName('Maybe'));
-    signet.subtype('mappable')('Nothing', hasTypeName('Nothing'));
+    signet.subtype('Mappable')('Just', hasTypeName('Just'));
+    signet.subtype('Mappable')('Maybe', hasTypeName('Maybe'));
+    signet.subtype('Mappable')('Nothing', hasTypeName('Nothing'));
 
 
     return signet;

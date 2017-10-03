@@ -23,48 +23,55 @@
 
     const pickType = (inputType, outputType) => either('type', inputType)(outputType);
 
-    const addConstructorBehaviors = (typeConstructor) => {
-        typeConstructor.withType = typeStr => value => typeConstructor(typeStr, value);
-        return typeConstructor;
+    const addMappableBehaviors = (outerType, mappableValue, mapFn, innerValue, innerType) => {
+        mappableValue.map = mapFn;
+        mappableValue.valueOf = () => getValueOf(innerValue);
+        mappableValue.getInnerValue = () => innerValue;
+        mappableValue.toString = () => outerType + '<' + innerType + '>';
+
+        return mappableValue;
     }
 
-    const addWrapperBehaviors = (outerType, wrapperFn, innerValue, innerType) => {
-        wrapperFn.map = wrapperFn;
-        wrapperFn.valueOf = () => getValueOf(innerValue);
-        wrapperFn.getInnerValue = () => innerValue;
-        wrapperFn.toString = () => outerType + '<' + innerType + '>';
+    function Nothing() {
+        const nothingValue = Object(undefined);
+        const nothingMap = () => nothingValue;
 
-        return wrapperFn;
+        return addMappableBehaviors('Nothing', nothingValue, nothingMap, undefined, '*');
     }
 
-    const Nothing = addWrapperBehaviors('Nothing', function Nothing() { return Nothing; }, null, '*');
 
-    const Just = addConstructorBehaviors(
-        function Just(inputType, value) {
+    function Just(inputType, value) {
 
-            const justValue = (transformer, outputType) =>
-                Just(
-                    pickType(inputType, outputType),
-                    transformer(value)
-                );
+        const justValue = Object(value);
 
-            return addWrapperBehaviors('Just', justValue, value, inputType);
+        function justMap(transformer, outputType) {
+            const nextType = pickType(inputType, outputType);
+            return Just(nextType, transformer(value));
         }
-    );
 
-    const Maybe = addConstructorBehaviors(
-        function Maybe(inputType, value) {
-            const innerValue = meither(inputType, Just.withType(inputType), Nothing)(getValueOf(value));
+        return addMappableBehaviors('Just', justValue, justMap, value, inputType);
+    }
 
-            const maybeValue = (transformer, outputType) =>
-                Maybe(
-                    pickType(inputType, outputType),
-                    innerValue.map(transformer)
-                );
+    function Maybe(inputType, value) {
+        const innerValue = meither(inputType, (value) => Just(inputType, value), Nothing)(getValueOf(value));
+        const maybeValue = Object(getValueOf(value));
 
-            return addWrapperBehaviors('Maybe', maybeValue, innerValue, inputType);
+        function maybeMap(transformer, outputType) {
+            const nextType = pickType(inputType, outputType);
+            const nextValue = innerValue.map(transformer, nextType);
+
+            return Maybe(nextType, nextValue);
         }
-    );
+
+        return addMappableBehaviors('Maybe', maybeValue, maybeMap, innerValue, inputType);
+    }
+
+    function toMappable(value, mapFn) {
+        const wrappedValue = Object(value);
+        const mapper = (transformer) => toMappable(mapFn(value, transformer), mapFn);
+
+        return addMappableBehaviors('Mappable', wrappedValue, mapper, value, '*');
+    }
 
     return {
         Just: signet.enforce(
@@ -73,7 +80,12 @@
         Maybe: signet.enforce(
             'inputType:type, value:* => Maybe<*>',
             Maybe),
-        Nothing: Nothing
+        Nothing: signet.enforce(
+            '* => Nothing<*>',
+            Nothing),
+        toMappable: signet.enforce(
+            'value:*, mapFn:function => Mappable<*>',
+            toMappable)
     };
 
 });
