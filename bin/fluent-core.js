@@ -20,7 +20,7 @@
         );
     } else {
         window.fluentCore = moduleFactory(
-            window.signet,
+            window.fuentSignet,
             window.corePredicates,
             window.coreFunctions,
             window.coreMonads,
@@ -47,6 +47,7 @@
         applyThrough: coreFunctions.applyThrough,
         call: coreFunctions.call,
         callThrough: coreFunctions.callThrough,
+        compose: coreFunctions.compose,
         curry: coreFunctions.curry,
         identity: coreFunctions.identity,
         slice: coreFunctions.slice,

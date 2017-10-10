@@ -5,7 +5,7 @@
         const signet = require('signet')();
         module.exports = moduleFactory(signet);
     } else {
-        window.signet = moduleFactory(signet);
+        window.fluentSignet = moduleFactory(signet);
     }
 
 })(function (signet) {
@@ -13,6 +13,11 @@
 
     function isMappable(value) {
         return signet.isTypeOf('function')(value.map);
+    }
+
+    function isAppendable(value, options) {
+        return signet.isTypeOf('function')(value.append)
+            && signet.isTypeOf(options[0])(value.valueOf());
     }
 
     function hasTypeName (typeName) {
@@ -24,6 +29,7 @@
     signet.alias('fluentType', 'variant<type, function>');
     signet.alias('referencible', 'not<variant<null, undefined>>');
     
+    signet.subtype('referencible')('Appendable{1}', isAppendable);
     signet.subtype('referencible')('Mappable', isMappable);
 
     signet.subtype('Mappable')('Just', hasTypeName('Just'));

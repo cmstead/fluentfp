@@ -7,7 +7,7 @@
 
         module.exports = moduleFactory(signet, corePredicates);
     } else {
-        window.coreFunctions = moduleFactory(window.signet, window.corePredicates);
+        window.coreFunctions = moduleFactory(window.fuentSignet, window.corePredicates);
     }
 
 })(function (signet, corePredicates) {
@@ -20,7 +20,9 @@
     function identity(value) {
         return value;
     }
-    
+
+    function noOp() {}
+
     const slice = (start, end) => (values) => {
         const endIndex = isInt(end) ? end : values.length;
         const valueLength = values.length;
@@ -93,6 +95,12 @@
         return curryWrapper(fn, args);
     }
 
+    function compose(fx, gx) {
+        return function () {
+            return fx(apply(gx, arguments));
+        };
+    }
+
     return {
         apply: signet.enforce(
             'fn:function, args:variant<array, arguments> => *',
@@ -106,12 +114,18 @@
         callThrough: signet.enforce(
             'fn:function, args...:* => *',
             callThrough),
+        compose: signet.enforce(
+            'fx:function, gx:function => fogx:function',
+            compose),
         curry: signet.enforce(
             'fn:function, args...:* => curriedFunction:function',
             curry),
         identity: signet.enforce(
             'x:* => *',
             identity),
+        noOp: signet.enforce(
+            '* => undefined',
+            noOp),
         slice: signet.enforce(
             'values: variant<array, arguments> => array',
             slice)

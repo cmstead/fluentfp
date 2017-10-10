@@ -8,7 +8,7 @@
 
         module.exports = moduleFactory(signet, coreFunctions, corePredicates);
     } else {
-        window.coreMonads = moduleFactory(window.signet, window.coreFunctions, window.corePredicates);
+        window.coreMonads = moduleFactory(window.fuentSignet, window.coreFunctions, window.corePredicates);
     }
 
 })(function (signet, coreFunctions, corePredicates) {

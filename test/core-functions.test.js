@@ -77,6 +77,19 @@ describe('core-functions', function () {
         });
 
     });
+    
+    describe('compose', function() {
+        
+        it('should compose two functions', function() {
+            const add2 = (value) => value + 2;
+            const add = (a, b) => a + b;
+
+            const result = coreFunctions.compose(add2, add)(5, 6);
+
+            assert.equal(result, 13);
+        });
+
+    });
 
 });
 
