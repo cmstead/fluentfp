@@ -3,88 +3,76 @@
 
     if (isNode) {
         const signet = require('./signet-types');
-        const coreMonads = require('./core-monads');
+        const coreTypes = require('./core-types');
+        const coreTransformable = require('./core-transformable');
 
-        module.exports = moduleFactory(signet, coreMonads);
+        module.exports = moduleFactory(
+            signet,
+            coreTypes,
+            coreTransformable);
     } else {
-        window.coreTyping = moduleFactory(signet, window.coreMonads);
+        window.coreTyping = moduleFactory(
+            signet,
+            window.coreTypes,
+            window.coreTransformable);
     }
 
-})(function (signet, coreMonads) {
+})(function (signet, coreTypes, coreTransformable) {
     'use strict';
+    (coreTransformable);
+    const getValueOf = coreTypes.getValueOf;
 
-    const either = coreMonads.either;
-    const meither = coreMonads.meither;
+    function transformableToMappable(inputType, typeValue) {
+        const transform = typeValue.transform;
 
-    const getValueOf = (value) =>
-        signet.isTypeOf('referencible')(value)
-            ? value.valueOf()
-            : value;
+        typeValue.transform =
+            (transformer, outputType) =>
+                transformableToMappable(outputType, transform(transformer, outputType));
 
-    const pickType = (inputType, outputType) => either('type', inputType)(outputType);
+        typeValue.map =
+            (transformer) =>
+                typeValue.transform(transformer, inputType);
 
-    const addMappableBehaviors = (outerType, mappableValue, mapFn, innerValue, innerType) => {
-        mappableValue.map = mapFn;
-        mappableValue.valueOf = () => getValueOf(innerValue);
-        mappableValue.getInnerValue = () => innerValue;
-        mappableValue.toString = () => outerType + '<' + innerType + '>';
-
-        return mappableValue;
+        return typeValue;
     }
 
     function Nothing() {
-        const nothingValue = Object(undefined);
-        const nothingMap = () => nothingValue;
-
-        return addMappableBehaviors('Nothing', nothingValue, nothingMap, undefined, '*');
+        const nothingValue = coreTransformable.Nothing();
+        return transformableToMappable('*', nothingValue);
     }
 
-
     function Just(inputType, value) {
-
-        const justValue = Object(value);
-
-        function justMap(transformer, outputType) {
-            const nextType = pickType(inputType, outputType);
-            return Just(nextType, transformer(value));
-        }
-
-        return addMappableBehaviors('Just', justValue, justMap, value, inputType);
+        const justValue = coreTransformable.Just(inputType, value);
+        return transformableToMappable(inputType, justValue);
     }
 
     function Maybe(inputType, value) {
-        const innerValue = meither(inputType, (value) => Just(inputType, value), Nothing)(getValueOf(value));
-        const maybeValue = Object(getValueOf(value));
+        const maybeValue = coreTransformable.Maybe(inputType, getValueOf(value));
+        const innerValue = transformableToMappable(inputType, maybeValue.getInnerValue());
 
-        function maybeMap(transformer, outputType) {
-            const nextType = pickType(inputType, outputType);
-            const nextValue = innerValue.map(transformer, nextType);
+        maybeValue.transform = 
+            (transformer, outputType) =>
+                Maybe(outputType, innerValue.transform(transformer, outputType));
 
-            return Maybe(nextType, nextValue);
-        }
+        maybeValue.map =
+            (transformer) => 
+                maybeValue.transform(transformer, inputType);
 
-        return addMappableBehaviors('Maybe', maybeValue, maybeMap, innerValue, inputType);
+        return maybeValue;
     }
 
-    function toMappable(value, mapFn) {
-        const wrappedValue = Object(value);
-        const mapper = (transformer) => toMappable(mapFn(value, transformer), mapFn);
+    function toMappable(inputType, value, transformFn) {
+        const wrappedValue = coreTransformable.toTransformable(inputType, value, transformFn);
 
-        return addMappableBehaviors('Mappable', wrappedValue, mapper, value, '*');
+        return transformableToMappable(inputType, wrappedValue);
     }
 
     return {
-        Just: signet.enforce(
-            'inputType:type, value:* => Just<*>',
-            Just),
-        Maybe: signet.enforce(
-            'inputType:type, value:* => Maybe<*>',
-            Maybe),
-        Nothing: signet.enforce(
-            '* => Nothing<*>',
-            Nothing),
+        Just: Just,
+        Maybe: Maybe,
+        Nothing: Nothing,
         toMappable: signet.enforce(
-            'value:*, mapFn:function => Mappable<*>',
+            'type:type, value:*, mapFn:function => Mappable<*>',
             toMappable)
     };
 

@@ -11,31 +11,31 @@
 })(function (signet) {
     'use strict';
 
-    function isMappable(value) {
-        return signet.isTypeOf('function')(value.map);
-    }
+    const hasTypeName =
+        (typeName) =>
+            (value) =>
+                value.typeString().indexOf(typeName) > -1;
 
-    function isAppendable(value, options) {
-        return signet.isTypeOf('function')(value.append)
-            && signet.isTypeOf(options[0])(value.valueOf());
-    }
+    const getSubtype =
+        (subtype) =>
+            typeof subtype === 'undefined' ? '*' : subtype;
 
-    function hasTypeName (typeName) {
-        return function (value) {
-            return value.toString().indexOf(typeName) > -1;
-        }
-    }
+    const buildContractCheck =
+        (propertyName) =>
+            (value, options) =>
+                signet.isTypeOf('function')(value[propertyName])
+                && signet.isTypeOf(getSubtype(options[0]))(value.valueOf());
 
     signet.alias('fluentType', 'variant<type, function>');
     signet.alias('referencible', 'not<variant<null, undefined>>');
-    
-    signet.subtype('referencible')('Appendable{1}', isAppendable);
-    signet.subtype('referencible')('Mappable', isMappable);
 
-    signet.subtype('Mappable')('Just', hasTypeName('Just'));
-    signet.subtype('Mappable')('Maybe', hasTypeName('Maybe'));
-    signet.subtype('Mappable')('Nothing', hasTypeName('Nothing'));
+    signet.subtype('referencible')('Transformable', buildContractCheck('transform'));
+    signet.subtype('Transformable')('Mappable', buildContractCheck('map'));
+    signet.subtype('referencible')('Appendable', buildContractCheck('append'));
 
+    signet.subtype('referencible')('Just', hasTypeName('Just'));
+    signet.subtype('referencible')('Maybe', hasTypeName('Maybe'));
+    signet.subtype('referencible')('Nothing', hasTypeName('Nothing'));
 
     return signet;
 

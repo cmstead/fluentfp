@@ -8,9 +8,9 @@ const assert = require('chai').assert;
 const prettyJson = require('./test-utils/prettyJson');
 const sinon = require('sinon');
 
-const fluentAppendable = require('../bin/fluent-appendable');
+const coreTypes = require('../bin/core-types.js');
 
-describe('fluent-appendable.js', function () {
+describe('core-types', function () {
     require('./test-utils/approvals-config');
 });
 
