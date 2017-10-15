@@ -29,9 +29,16 @@
             (transformer, outputType) =>
                 transformableToMappable(outputType, transform(transformer, outputType));
 
-        typeValue.map =
-            (transformer) =>
-                typeValue.transform(transformer, inputType);
+        if (typeof typeValue.map !== 'function') {
+            typeValue.map =
+                (transformer) =>
+                    typeValue.transform(transformer, inputType);
+        } else {
+            let map = typeValue.map;
+            typeValue.map =
+                (transformer) =>
+                    transformableToMappable(inputType, map.call(typeValue, transformer))
+        }
 
         return typeValue;
     }
@@ -50,13 +57,23 @@
         const maybeValue = coreTransformable.Maybe(inputType, getValueOf(value));
         const innerValue = transformableToMappable(inputType, maybeValue.getInnerValue());
 
-        maybeValue.transform = 
+        maybeValue.transform =
             (transformer, outputType) =>
                 Maybe(outputType, innerValue.transform(transformer, outputType));
 
-        maybeValue.map =
-            (transformer) => 
-                maybeValue.transform(transformer, inputType);
+        if (typeof maybeValue.map !== 'function') {
+            maybeValue.map =
+                (transformer) =>
+                    maybeValue.transform(transformer, inputType);
+        } else {
+            const map = maybeValue.map;
+            maybeValue.map =
+                (transformer) =>
+                    Maybe(
+                        inputType,
+                        map.call(maybeValue, transformer)
+                    );
+        }
 
         return maybeValue;
     }
@@ -71,6 +88,8 @@
         Just: Just,
         Maybe: Maybe,
         Nothing: Nothing,
+
+        getValueOf: getValueOf,
         toMappable: signet.enforce(
             'type:type, value:*, mapFn:function => Mappable<*>',
             toMappable)

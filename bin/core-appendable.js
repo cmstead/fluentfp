@@ -7,20 +7,20 @@
         const signet = require('./signet-types');
         const coreMonads = require('./core-monads');
         const coreFunctions = require('./core-functions');
-        const coreTransformable = require('./core-transformable');
+        const coreMappable = require('./core-mappable');
 
         module.exports = moduleFactory(
             signet,
             coreMonads,
             coreFunctions,
-            coreTransformable
+            coreMappable
         );
     } else {
         window.fluentAppendable.js = moduleFactory(
             signet,
             window.coreMonads,
             window.coreFunctions,
-            window.coreTransformable
+            window.coreMappable
         );
     }
 
@@ -28,12 +28,12 @@
     signet,
     coreMonads,
     coreFunctions,
-    coreTransformable
+    coreMappable
 ) {
 
     const compose = coreFunctions.compose;
     const meither = coreMonads.meither;
-    const getValueOf = coreTransformable.getValueOf;
+    const getValueOf = coreMappable.getValueOf;
 
     function transformableToAppendable(inputType, typeValue, appender) {
         const transform = typeValue.transform;
@@ -50,18 +50,8 @@
     }
 
 
-    function Nothing() {
-        const nothingValue = coreTransformable.Nothing();
-        return transformableToAppendable('*', nothingValue, () => nothingValue);
-    }
-
-    function Just(inputType, value, appender) {
-        const justValue = coreTransformable.Just(inputType, value);
-        return transformableToAppendable(inputType, justValue, appender);
-    }
-
     function Maybe(inputType, value, appender) {
-        const maybeValue = coreTransformable.Maybe(inputType, getValueOf(value));
+        const maybeValue = coreMappable.Maybe(inputType, getValueOf(value));
         const innerValue = transformableToAppendable(inputType, maybeValue.getInnerValue(), appender);
 
         maybeValue.transform =
@@ -69,8 +59,8 @@
                 Maybe(outputType, innerValue.transform(transformer, outputType), appender);
 
         maybeValue.append =
-            (value) =>
-                maybeValue.transform((currentValue) => appender(currentValue, value), inputType);
+            (newValue) =>
+                Maybe(inputType, appender(value, newValue), appender);
 
         return maybeValue;
     }
@@ -90,19 +80,19 @@
         return appendable;
     }
 
-    const compositional =
+    const toCompositional =
         (fn) =>
             addNamedAppendableProps(
                 'compose',
                 toAppendable('function', fn, compose));
 
-    const multiplicative =
+    const toMultiplicative =
         (value) =>
             addNamedAppendableProps(
                 'times',
                 toAppendable('number', value, (a, b) => a * b));
 
-    const additive =
+    const toAdditive =
         (value) =>
             addNamedAppendableProps(
                 'plus',
@@ -111,7 +101,7 @@
     const stringConcat = (a, b) => String.prototype.concat.call(a, b);
     const arrayConcat = (a, b) => Array.prototype.concat.call(a, b);
 
-    const concatable =
+    const toConcatable =
         (value) =>
             addNamedAppendableProps(
                 'concat',
@@ -121,29 +111,25 @@
                     meither('string', () => stringConcat, () => arrayConcat)(value)));
 
     return {
-        Just: Just,
-        Maybe: Maybe,
-        Nothing: Nothing,
-
         toAppendable: signet.enforce(
             'type:type, value: *, appender:function<* => *> => Appendable<*>',
             toAppendable),
 
-        compositional: signet.enforce(
+        toCompositional: signet.enforce(
             'value: function => Appendable<function>',
-            compositional),
+            toCompositional),
 
-        multiplicative: signet.enforce(
+        toMultiplicative: signet.enforce(
             'value: number => Appendable<number>',
-            multiplicative),
+            toMultiplicative),
 
-        additive: signet.enforce(
+        toAdditive: signet.enforce(
             'value: number => Appendable<number>',
-            additive),
+            toAdditive),
 
-        concatable: signet.enforce(
+        toConcatable: signet.enforce(
             'value: variant<string, array> => Appendable<variant<string, array>>',
-            concatable)
+            toConcatable)
 
     }
 });

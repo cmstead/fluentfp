@@ -27,6 +27,14 @@ describe('coreMappable', function () {
             assert.equal(result.getInnerValue(), 2468);
             assert.equal(result.valueOf(), 2468);
         });
+
+        it('should wrap an array', function() {
+            var justArray = coreMappable.Just('array', [1, 2, 3, 4]);
+            var result = justArray.map(value => value * 2);
+
+            assert.equal(justArray.typeString(), 'Just<array>');
+            assert.equal(result.toString(), '2,4,6,8');
+        });
     });
 
     describe('Maybe', function() {
@@ -59,6 +67,13 @@ describe('coreMappable', function () {
             assert.equal((maybe5 * maybeNothing).toString(), 'NaN');
         });
 
+        it('should wrap an array', function() {
+            var maybeArray = coreMappable.Maybe('array', [1, 2, 3, 4]);
+            var result = maybeArray.map(value => value * 2);
+
+            assert.equal(maybeArray.typeString(), 'Maybe<array>');
+            assert.equal(result.toString(), '2,4,6,8');
+        });
     });
 
     describe('toMappable', function() {

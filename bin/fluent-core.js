@@ -8,6 +8,7 @@
         const coreFunctions = require('./core-functions');
         const coreMonads = require('./core-monads');
         const coreMappable = require('./core-mappable');
+        const coreAppendable = require('./core-appendable');
 
         const signet = require('./signet-types');
 
@@ -16,7 +17,8 @@
             corePredicates,
             coreFunctions,
             coreMonads,
-            coreMappable
+            coreMappable,
+            coreAppendable
         );
     } else {
         window.fluentCore = moduleFactory(
@@ -24,7 +26,8 @@
             window.corePredicates,
             window.coreFunctions,
             window.coreMonads,
-            window.coreMappable
+            window.coreMappable,
+            window.coreAppendable
         );
     }
 
@@ -33,7 +36,8 @@
     corePredicates,
     coreFunctions,
     coreMonads,
-    coreMappable
+    coreMappable,
+    coreAppendable
 ) {
     'use strict';
 
@@ -47,9 +51,12 @@
         applyThrough: coreFunctions.applyThrough,
         call: coreFunctions.call,
         callThrough: coreFunctions.callThrough,
+
         compose: coreFunctions.compose,
         curry: coreFunctions.curry,
         identity: coreFunctions.identity,
+        noOp: coreFunctions.noOp,
+        recur: coreFunctions.recur,
         slice: coreFunctions.slice,
 
         either: coreMonads.either,
@@ -57,6 +64,13 @@
 
         Just: coreMappable.Just,
         Maybe: coreMappable.Maybe,
-        Nothing: coreMappable.Nothing
+        Nothing: coreMappable.Nothing,
+
+        toMappable: coreMappable.toMappable,
+        toAppendable: coreAppendable.toAppendable,
+        toCompositional: coreAppendable.toCompositional,
+        toMultiplicative: coreAppendable.toMultiplicative,
+        toAdditive: coreAppendable.toAdditive,
+        toConcatable: coreAppendable.toConcatable
     };
 });

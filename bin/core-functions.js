@@ -21,7 +21,7 @@
         return value;
     }
 
-    function noOp() {}
+    function noOp() { }
 
     const slice = (start, end) => (values) => {
         const endIndex = isInt(end) ? end : values.length;
@@ -101,6 +101,15 @@
         };
     }
 
+    function recur(builder) {
+        const buildFApply = (f) => (...args) => apply(f(f), args)
+        const buildApplicator = (f) => builder(buildFApply(f));
+        const applyBuilder = f => f(f);
+
+        return applyBuilder(buildApplicator);
+    }
+
+
     return {
         apply: signet.enforce(
             'fn:function, args:variant<array, arguments> => *',
@@ -126,6 +135,9 @@
         noOp: signet.enforce(
             '* => undefined',
             noOp),
+        recur: signet.enforce(
+            'recursible:function => function',
+            recur),
         slice: signet.enforce(
             'values: variant<array, arguments> => array',
             slice)

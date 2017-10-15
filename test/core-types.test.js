@@ -1,19 +1,40 @@
 'use strict';
 
-if (typeof exploreFunction !== 'function') {
-    require('quokka-signet-explorer').before();
-}
-
 const assert = require('chai').assert;
-const prettyJson = require('./test-utils/prettyJson');
-const sinon = require('sinon');
-
 const coreTypes = require('../bin/core-types.js');
 
 describe('core-types', function () {
-    require('./test-utils/approvals-config');
-});
 
-if (typeof global.runQuokkaMochaBdd === 'function') {
-    runQuokkaMochaBdd();
-}
+    describe('Nothing', function() {
+        
+        it('should return a Nothing instance', function() {
+            assert.equal(coreTypes.Nothing().typeString(), 'Nothing<*>');
+        });
+
+    });
+
+    describe('Just', function() {
+        
+        it('should return a wrapped value', function() {
+            assert.equal(coreTypes.Just('int', 5).typeString(), 'Just<int>');
+        });
+
+        it('should return a wrapped array', function() {
+            assert.equal(coreTypes.Just('array', [1, 2, 3, 4]).typeString(), 'Just<array>');
+        });
+
+    });
+
+    describe('Maybe', function() {
+        
+        it('should return a wrapped value', function() {
+            assert.equal(coreTypes.Maybe('string', 'testing!').typeString(), 'Maybe<string>');
+        });
+
+        it('should return a wrapped array', function() {
+            assert.equal(coreTypes.Maybe('array', ['foo', 'bar', 'baz']).typeString(), 'Maybe<array>');
+        });
+
+    });
+
+});
