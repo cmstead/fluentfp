@@ -1,4 +1,5 @@
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const coreMappable = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if (isNode) {
@@ -7,17 +8,20 @@
         const coreTransformable = require('./core-transformable');
         const coreFunctions = require('./core-functions');
 
-        module.exports = moduleFactory(
+        const moduleOutput = moduleFactory(
             signet,
             coreTypes,
             coreTransformable,
             coreFunctions);
+
+        module.exports = moduleOutput;
+        return moduleOutput;
     } else {
-        window.coreTyping = moduleFactory(
+        return moduleFactory(
             signet,
-            window.coreTypes,
-            window.coreTransformable,
-            window.coreFunctions);
+            coreTypes,
+            coreTransformable,
+            coreFunctions);
     }
 
 })(function (signet, coreTypes, coreTransformable, coreFunctions) {

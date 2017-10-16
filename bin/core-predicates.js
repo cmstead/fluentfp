@@ -1,17 +1,21 @@
-'use strict';
-
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const corePredicates = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
-    if(isNode) {
+    if (isNode) {
         const signet = require('./signet-types');
 
-        module.exports = moduleFactory(signet);
+        const moduleOutput = moduleFactory(signet);
+
+        module.exports = moduleOutput;
+        return moduleOutput;
     } else {
-        window.corePredicates = moduleFactory(signet);
+        return moduleFactory(signet);
     }
 
 })(function (signet) {
+    'use strict';
+
     const isArray = signet.isTypeOf('array');
     const isFunction = signet.isTypeOf('function');
     const isInt = signet.isTypeOf('int');

@@ -22,8 +22,13 @@
         "beforeEach": false,
         "afterEach": false,
         "signet": false,
-        "fluentfpEnforcer": false,
-        "fluentfpTypes": false,
-        "fluentfpHelpers": false
+        
+        "coreAppendable": false,
+        "coreFunctions": false,
+        "coreMappable": false,
+        "coreMonads": false,
+        "corePredicates": false,
+        "coreTransformable": false,
+        "coreTypes": false
     }
 }

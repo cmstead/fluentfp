@@ -1,13 +1,17 @@
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const coreFunctions = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if (isNode) {
         const signet = require('./signet-types');
         const corePredicates = require('./core-predicates');
 
-        module.exports = moduleFactory(signet, corePredicates);
+        const moduleOutput = moduleFactory(signet, corePredicates);
+
+        module.exports = moduleOutput;
+        return moduleOutput;
     } else {
-        window.coreFunctions = moduleFactory(window.fuentSignet, window.corePredicates);
+        return moduleFactory(signet, corePredicates);
     }
 
 })(function (signet, corePredicates) {

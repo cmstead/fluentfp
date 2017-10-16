@@ -1,6 +1,5 @@
-'use strict';
-
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const fluentCore = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if(isNode) {
@@ -12,7 +11,7 @@
 
         const signet = require('./signet-types');
 
-        module.exports = moduleFactory(
+        const moduleOutput = moduleFactory(
             signet,
             corePredicates,
             coreFunctions,
@@ -20,14 +19,17 @@
             coreMappable,
             coreAppendable
         );
+
+        module.exports = moduleOutput;
+        return moduleOutput;
     } else {
-        window.fluentCore = moduleFactory(
-            window.fuentSignet,
-            window.corePredicates,
-            window.coreFunctions,
-            window.coreMonads,
-            window.coreMappable,
-            window.coreAppendable
+        return moduleFactory(
+            signet,
+            corePredicates,
+            coreFunctions,
+            coreMonads,
+            coreMappable,
+            coreAppendable
         );
     }
 

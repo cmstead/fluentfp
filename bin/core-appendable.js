@@ -1,36 +1,39 @@
-'use strict';
-
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const fluentAppendable = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
-
+    
     if (isNode) {
         const signet = require('./signet-types');
         const coreMonads = require('./core-monads');
         const coreFunctions = require('./core-functions');
         const coreMappable = require('./core-mappable');
-
-        module.exports = moduleFactory(
+        
+        const moduleOutput = moduleFactory(
             signet,
             coreMonads,
             coreFunctions,
             coreMappable
         );
+        
+        module.exports = moduleOutput;
+        return moduleOutput;
     } else {
-        window.fluentAppendable.js = moduleFactory(
+        return moduleFactory(
             signet,
-            window.coreMonads,
-            window.coreFunctions,
-            window.coreMappable
+            coreMonads,
+            coreFunctions,
+            coreMappable
         );
     }
-
+    
 })(function (
     signet,
     coreMonads,
     coreFunctions,
     coreMappable
 ) {
-
+    'use strict';
+    
     const compose = coreFunctions.compose;
     const meither = coreMonads.meither;
     const valueOf = coreFunctions.valueOf;

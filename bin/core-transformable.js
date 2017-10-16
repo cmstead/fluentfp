@@ -1,6 +1,5 @@
-'use strict';
-
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const coreTransformable = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if (isNode) {
@@ -8,19 +7,23 @@
         const coreTypes = require('./core-types');
         const coreMonads = require('./core-monads');
 
-        module.exports = moduleFactory(
+        const moduleOutput = moduleFactory(
             signet,
             coreTypes,
             coreMonads);
+
+        module.exports = moduleOutput;
+        return moduleOutput;
     } else {
-        window.fluentTransformable = moduleFactory(
+        return moduleFactory(
             signet,
-            window.coreTypes,
-            window.coreMonads);
+            coreTypes,
+            coreMonads);
     }
 
 })(function (signet, coreTypes, coreMonads) {
-
+    'use strict';
+    
     const buildNothingTransform =
         (nothingValue) =>
             () => nothingValue;

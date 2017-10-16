@@ -1,6 +1,5 @@
-'use strict';
-
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const coreTypes = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if (isNode) {
@@ -8,9 +7,12 @@
         const coreMonads = require('./core-monads');
         const coreFunctions = require('./core-functions');
 
-        module.exports = moduleFactory(signet, coreMonads, coreFunctions);
+        const moduleOutput = moduleFactory(signet, coreMonads, coreFunctions);
+
+        module.exports = moduleOutput;
+        return moduleOutput
     } else {
-        window.coreTypes = moduleFactory(signet, window.coreMonads, window.coreFunctions);
+        return moduleFactory(signet, coreMonads, coreFunctions);
     }
 
 })(function (signet, coreMonads, coreFunctions) {

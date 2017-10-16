@@ -1,11 +1,17 @@
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const signet = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if (isNode) {
         const signet = require('signet')();
-        module.exports = moduleFactory(signet);
+        const moduleOutput = moduleFactory(signet);
+
+        module.exports = moduleOutput;
+        return moduleOutput;
+    } else if(typeof window.signet === 'object') {
+        return moduleFactory(window.signet);
     } else {
-        window.fluentSignet = moduleFactory(signet);
+        throw new Error('Fluent FP requires the Signet type library to run in the browser.');
     }
 
 })(function (signet) {

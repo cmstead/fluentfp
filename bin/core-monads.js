@@ -1,4 +1,5 @@
-(function (moduleFactory) {
+// eslint-disable-next-line no-unused-vars
+const coreMonads = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if (isNode) {
@@ -6,9 +7,12 @@
         const coreFunctions = require('./core-functions');
         const corePredicates = require('./core-predicates');
 
-        module.exports = moduleFactory(signet, coreFunctions, corePredicates);
+        const moduleOutput = moduleFactory(signet, coreFunctions, corePredicates);
+
+        module.exports = moduleOutput;
+        return moduleOutput;
     } else {
-        window.coreMonads = moduleFactory(window.fuentSignet, window.coreFunctions, window.corePredicates);
+       return moduleFactory(signet, coreFunctions, corePredicates);
     }
 
 })(function (signet, coreFunctions, corePredicates) {

@@ -6,11 +6,19 @@ const eslint = require('gulp-eslint');
 const gulp = require('gulp');
 const istanbul = require('gulp-istanbul');
 const mocha = require('gulp-mocha');
+const iife = require('gulp-iife');
 
 const sourceFiles = [
-    'bin/**/*.js',
-    'index.js',
-    '!node_modules/**'
+    './bin/signet-types.js',
+    './bin/core-predicates.js',
+    './bin/core-functions.js',
+    './bin/core-monads.js',
+    './bin/core-types.js',
+    './bin/core-transformable.js',
+    './bin/core-mappable.js',
+    './bin/core-appendable.js',
+    './bin/fluent-core.js',
+    'index.js'
 ];
 
 const testFiles = [
@@ -23,7 +31,8 @@ gulp.task('compile', () => {
             presets: ['env']
         }))
         .pipe(concat('fluentfp.js'))
-        .pipe(gulp.dest('./dist/'));
+        .pipe(iife())
+        .pipe(gulp.dest('./dist/'))
 });
 
 gulp.task('lint', () => {
