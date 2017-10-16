@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('chai').assert;
-const coreTransformable = require('../bin/core-transformable.js');
+const coreTransformable = require('../bin/core/core-transformable.js');
 
 describe('core-transformable', function () {
     describe('Nothing', function() {

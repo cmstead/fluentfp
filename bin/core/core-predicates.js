@@ -3,7 +3,7 @@ const corePredicates = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if (isNode) {
-        const signet = require('./signet-types');
+        const signet = require('../signet-types');
 
         const moduleOutput = moduleFactory(signet);
 

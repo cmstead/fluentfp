@@ -1,19 +1,12 @@
 'use strict';
 
-if (typeof exploreFunction !== 'function') {
-    require('quokka-signet-explorer').before();
-}
-
 const assert = require('chai').assert;
-const prettyJson = require('./test-utils/prettyJson');
-const sinon = require('sinon');
 
-const coreFunctions = require('../bin/core-functions.js');
+const coreFunctions = require('../bin/core/core-functions.js');
 
 function add(a, b) { return a + b; }
 
 describe('core-functions', function () {
-    require('./test-utils/approvals-config');
 
     describe('apply', function () {
 
@@ -108,7 +101,3 @@ describe('core-functions', function () {
     });
 
 });
-
-if (typeof global.runQuokkaMochaBdd === 'function') {
-    runQuokkaMochaBdd();
-}

@@ -2,15 +2,15 @@
     const isNode = typeof module !== undefined && typeof module.exports !== undefined
 
     if (isNode) {
-        module.exports = moduleFactory(signet);
-    } else if (typeof signet === 'object') {
-        window.fluentfp = moduleFactory(signet);
+        const fluentCore = require('./bin/fluent-core');
+
+        module.exports = moduleFactory(fluentCore);
     } else {
-        throw new Error('The module fluentfp requires Signet to run.');
+        window.fluentfp = moduleFactory(fluentCore);
     }
 
-})(function (signet) {
+})(function (fluentCore) {
     'use strict';
 
-    (signet);
+    (fluentCore);
 });

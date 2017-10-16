@@ -3,7 +3,7 @@ const coreMappable = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if (isNode) {
-        const signet = require('./signet-types');
+        const signet = require('../signet-types');
         const coreTypes = require('./core-types');
         const coreTransformable = require('./core-transformable');
         const coreFunctions = require('./core-functions');

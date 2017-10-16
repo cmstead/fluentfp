@@ -1,17 +1,10 @@
 'use strict';
 
-if (typeof exploreFunction !== 'function') {
-    require('quokka-signet-explorer').before();
-}
-
 const assert = require('chai').assert;
-const prettyJson = require('./test-utils/prettyJson');
-const sinon = require('sinon');
 
-const coreMonads = require('../bin/core-monads.js');
+const coreMonads = require('../bin/core/core-monads.js');
 
 describe('core-monads', function () {
-    require('./test-utils/approvals-config');
 
     describe('either', function () {
 
@@ -47,7 +40,3 @@ describe('core-monads', function () {
     });
 
 });
-
-if (typeof global.runQuokkaMochaBdd === 'function') {
-    runQuokkaMochaBdd();
-}

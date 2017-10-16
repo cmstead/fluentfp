@@ -2,7 +2,7 @@
 
 const assert = require('chai').assert;
 
-const coreAppendable = require('../bin/core-appendable');
+const coreAppendable = require('../bin/core/core-appendable');
 
 describe('core-appendable', function () {
 

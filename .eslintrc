@@ -29,6 +29,7 @@
         "coreMonads": false,
         "corePredicates": false,
         "coreTransformable": false,
-        "coreTypes": false
+        "coreTypes": false,
+        "fluentCore": false
     }
 }

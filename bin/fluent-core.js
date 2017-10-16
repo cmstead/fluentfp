@@ -3,16 +3,13 @@ const fluentCore = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
     if(isNode) {
-        const corePredicates = require('./core-predicates');
-        const coreFunctions = require('./core-functions');
-        const coreMonads = require('./core-monads');
-        const coreMappable = require('./core-mappable');
-        const coreAppendable = require('./core-appendable');
-
-        const signet = require('./signet-types');
+        const corePredicates = require('./core/core-predicates');
+        const coreFunctions = require('./core/core-functions');
+        const coreMonads = require('./core/core-monads');
+        const coreMappable = require('./core/core-mappable');
+        const coreAppendable = require('./core/core-appendable');
 
         const moduleOutput = moduleFactory(
-            signet,
             corePredicates,
             coreFunctions,
             coreMonads,
@@ -24,7 +21,6 @@ const fluentCore = (function (moduleFactory) {
         return moduleOutput;
     } else {
         return moduleFactory(
-            signet,
             corePredicates,
             coreFunctions,
             coreMonads,
@@ -34,7 +30,6 @@ const fluentCore = (function (moduleFactory) {
     }
 
 })(function (
-    signet,
     corePredicates,
     coreFunctions,
     coreMonads,

@@ -10,13 +10,13 @@ const iife = require('gulp-iife');
 
 const sourceFiles = [
     './bin/signet-types.js',
-    './bin/core-predicates.js',
-    './bin/core-functions.js',
-    './bin/core-monads.js',
-    './bin/core-types.js',
-    './bin/core-transformable.js',
-    './bin/core-mappable.js',
-    './bin/core-appendable.js',
+    './bin/core/core-predicates.js',
+    './bin/core/core-functions.js',
+    './bin/core/core-monads.js',
+    './bin/core/core-types.js',
+    './bin/core/core-transformable.js',
+    './bin/core/core-mappable.js',
+    './bin/core/core-appendable.js',
     './bin/fluent-core.js',
     'index.js'
 ];

@@ -1,11 +1,7 @@
 'use strict';
 
-if (typeof exploreFunction !== 'function') {
-    require('quokka-signet-explorer').before();
-}
-
 const assert = require('chai').assert;
-const coreMappable = require('../bin/core-mappable.js');
+const coreMappable = require('../bin/core/core-mappable.js');
 
 describe('coreMappable', function () {
 

@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require('chai').assert;
-const coreTypes = require('../bin/core-types.js');
+const coreTypes = require('../bin/core/core-types.js');
 
 describe('core-types', function () {
 
