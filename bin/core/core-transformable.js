@@ -23,7 +23,7 @@ const coreTransformable = (function (moduleFactory) {
 
 })(function (signet, coreTypes, coreMonads) {
     'use strict';
-    
+
     const buildNothingTransform =
         (nothingValue) =>
             () => nothingValue;
@@ -78,9 +78,11 @@ const coreTransformable = (function (moduleFactory) {
         wrappedValue.transform =
             (transformer, outputType) =>
                 toTransformable(outputType, transformFn(transformer, value), transformFn);
-        
+
         return wrappedValue;
     }
+
+    const identityTransform = (transformer, value) => transformer(value);
 
     return {
         Just: Just,
@@ -89,6 +91,10 @@ const coreTransformable = (function (moduleFactory) {
 
         toTransformable: signet.enforce(
             'type:type, value:*, mapFn:function => Transformable<*>',
-            toTransformable)
+            toTransformable),
+
+        identityTransform: signet.enforce(
+            'transformer: function, value: * => *',
+            identityTransform)
     };
 });

@@ -2,10 +2,11 @@
 const fluentCore = (function (moduleFactory) {
     const isNode = typeof module !== 'undefined' && typeof module.exports !== undefined;
 
-    if(isNode) {
+    if (isNode) {
         const corePredicates = require('./core/core-predicates');
         const coreFunctions = require('./core/core-functions');
         const coreMonads = require('./core/core-monads');
+        const coreTransformable = require('./core/core-transformable');
         const coreMappable = require('./core/core-mappable');
         const coreAppendable = require('./core/core-appendable');
 
@@ -13,6 +14,7 @@ const fluentCore = (function (moduleFactory) {
             corePredicates,
             coreFunctions,
             coreMonads,
+            coreTransformable,
             coreMappable,
             coreAppendable
         );
@@ -24,6 +26,7 @@ const fluentCore = (function (moduleFactory) {
             corePredicates,
             coreFunctions,
             coreMonads,
+            coreTransformable,
             coreMappable,
             coreAppendable
         );
@@ -33,12 +36,25 @@ const fluentCore = (function (moduleFactory) {
     corePredicates,
     coreFunctions,
     coreMonads,
+    coreTransformable,
     coreMappable,
     coreAppendable
 ) {
     'use strict';
 
+    function addCoreBehaviors(value) {
+        if (corePredicates.isFunction(value)) {
+            value.applyThrough = (args) => coreFunctions.applyThrough(value, args);
+            value.callThrough = (...args) => coreFunctions.applyThrough(value, args);
+            value.curry = (...args) => coreFunctions.curry.apply(null, value, args);
+        }
+
+        return value;
+    }
+
     return {
+        addCoreBehaviors: addCoreBehaviors,
+
         isArray: corePredicates.isArray,
         isFunction: corePredicates.isFunction,
         isInt: corePredicates.isInt,
@@ -65,6 +81,9 @@ const fluentCore = (function (moduleFactory) {
         Maybe: coreMappable.Maybe,
         Nothing: coreMappable.Nothing,
 
+        identityTransform: coreTransformable.identityTransform,
+
+        toTransformable: coreTransformable.toTransformable,
         toMappable: coreMappable.toMappable,
         toAppendable: coreAppendable.toAppendable,
         toCompositional: coreAppendable.toCompositional,

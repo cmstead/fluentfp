@@ -36,7 +36,7 @@ const signet = (function (moduleFactory) {
     signet.alias('referencible', 'not<variant<null, undefined>>');
 
     signet.subtype('referencible')('Transformable', buildContractCheck('transform'));
-    signet.subtype('Transformable')('Mappable', buildContractCheck('map'));
+    signet.subtype('referencible')('Mappable', buildContractCheck('map'));
     signet.subtype('referencible')('Appendable', buildContractCheck('append'));
 
     signet.subtype('referencible')('Just', hasTypeName('Just'));
