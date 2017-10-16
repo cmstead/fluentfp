@@ -16,11 +16,13 @@
     const isFunction = signet.isTypeOf('function');
     const isInt = signet.isTypeOf('int');
     const isNull = signet.isTypeOf('null');
+    const isReferencible = signet.isTypeOf('referencible');
 
     return {
         isArray: isArray,
         isFunction: isFunction,
         isInt: isInt,
-        isNull: isNull
+        isNull: isNull,
+        isReferencible: isReferencible
     };
 });

@@ -5,22 +5,25 @@
         const signet = require('./signet-types');
         const coreTypes = require('./core-types');
         const coreTransformable = require('./core-transformable');
+        const coreFunctions = require('./core-functions');
 
         module.exports = moduleFactory(
             signet,
             coreTypes,
-            coreTransformable);
+            coreTransformable,
+            coreFunctions);
     } else {
         window.coreTyping = moduleFactory(
             signet,
             window.coreTypes,
-            window.coreTransformable);
+            window.coreTransformable,
+            window.coreFunctions);
     }
 
-})(function (signet, coreTypes, coreTransformable) {
+})(function (signet, coreTypes, coreTransformable, coreFunctions) {
     'use strict';
     (coreTransformable);
-    const getValueOf = coreTypes.getValueOf;
+    const valueOf = coreFunctions.valueOf;
 
     function transformableToMappable(inputType, typeValue) {
         const transform = typeValue.transform;
@@ -54,7 +57,7 @@
     }
 
     function Maybe(inputType, value) {
-        const maybeValue = coreTransformable.Maybe(inputType, getValueOf(value));
+        const maybeValue = coreTransformable.Maybe(inputType, valueOf(value));
         const innerValue = transformableToMappable(inputType, maybeValue.getInnerValue());
 
         maybeValue.transform =
@@ -89,7 +92,6 @@
         Maybe: Maybe,
         Nothing: Nothing,
 
-        getValueOf: getValueOf,
         toMappable: signet.enforce(
             'type:type, value:*, mapFn:function => Mappable<*>',
             toMappable)

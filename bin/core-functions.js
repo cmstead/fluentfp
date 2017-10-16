@@ -16,6 +16,7 @@
     const isArray = corePredicates.isArray;
     const isFunction = corePredicates.isFunction;
     const isInt = corePredicates.isInt;
+    const isReferencible = corePredicates.isReferencible;
 
     function identity(value) {
         return value;
@@ -109,6 +110,10 @@
         return applyBuilder(buildApplicator);
     }
 
+    function valueOf(value) {
+        return isReferencible(value) ? value.valueOf() : value;
+    }
+
 
     return {
         apply: signet.enforce(
@@ -140,6 +145,9 @@
             recur),
         slice: signet.enforce(
             'values: variant<array, arguments> => array',
-            slice)
+            slice),
+        valueOf: signet.enforce(
+            '* => *',
+            valueOf)
     };
 });

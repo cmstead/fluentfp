@@ -46,6 +46,7 @@
         isFunction: corePredicates.isFunction,
         isInt: corePredicates.isInt,
         isNull: corePredicates.isNull,
+        isReferencible: corePredicates.isReferencible,
 
         apply: coreFunctions.apply,
         applyThrough: coreFunctions.applyThrough,
@@ -58,6 +59,7 @@
         noOp: coreFunctions.noOp,
         recur: coreFunctions.recur,
         slice: coreFunctions.slice,
+        valueOf: coreFunctions.valueOf,
 
         either: coreMonads.either,
         meither: coreMonads.meither,

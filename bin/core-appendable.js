@@ -33,7 +33,7 @@
 
     const compose = coreFunctions.compose;
     const meither = coreMonads.meither;
-    const getValueOf = coreMappable.getValueOf;
+    const valueOf = coreFunctions.valueOf;
 
     function transformableToAppendable(inputType, typeValue, appender) {
         const transform = typeValue.transform;
@@ -51,7 +51,7 @@
 
 
     function Maybe(inputType, value, appender) {
-        const maybeValue = coreMappable.Maybe(inputType, getValueOf(value));
+        const maybeValue = coreMappable.Maybe(inputType, valueOf(value));
         const innerValue = transformableToAppendable(inputType, maybeValue.getInnerValue(), appender);
 
         maybeValue.transform =

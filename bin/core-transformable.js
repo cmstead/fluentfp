@@ -84,7 +84,6 @@
         Maybe: Maybe,
         Nothing: Nothing,
 
-        getValueOf: coreTypes.getValueOf,
         toTransformable: signet.enforce(
             'type:type, value:*, mapFn:function => Transformable<*>',
             toTransformable)

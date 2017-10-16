@@ -6,27 +6,25 @@
     if (isNode) {
         const signet = require('./signet-types');
         const coreMonads = require('./core-monads');
+        const coreFunctions = require('./core-functions');
 
-        module.exports = moduleFactory(signet, coreMonads);
+        module.exports = moduleFactory(signet, coreMonads, coreFunctions);
     } else {
-        window.coreTypes = moduleFactory(signet, window.coreMonads);
+        window.coreTypes = moduleFactory(signet, window.coreMonads, window.coreFunctions);
     }
 
-})(function (signet, coreMonads) {
+})(function (signet, coreMonads, coreFunctions) {
     'use strict';
 
     const meither = coreMonads.meither;
     const isUnsafeType = signet.isTypeOf('variant<array, function>');
 
-    const getValueOf = (value) =>
-        signet.isTypeOf('referencible')(value)
-            ? value.valueOf()
-            : value;
+    const valueOf = coreFunctions.valueOf
 
 
     function addTypeMethods(typeValue, innerValue, outerType, innerType) {
         if(!isUnsafeType(innerValue)) {
-            typeValue.valueOf = () => getValueOf(innerValue);
+            typeValue.valueOf = () => valueOf(innerValue);
         }
         
         typeValue.getInnerValue = () => innerValue;
@@ -42,7 +40,7 @@
     }
 
     function Just(type, value) {
-        if (!signet.isTypeOf(type)(getValueOf(value))) {
+        if (!signet.isTypeOf(type)(valueOf(value))) {
             throw new Error('Unable to create new value of type \'' + type + '\' with value ' + value);
         }
 
@@ -71,11 +69,7 @@
             Maybe),
         Nothing: signet.enforce(
             '* => Nothing<*>',
-            Nothing),
-
-        getValueOf: signet.enforce(
-            'value:* => *',
-            getValueOf)
+            Nothing)
     };
 
 });
