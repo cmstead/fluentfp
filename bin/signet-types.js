@@ -43,6 +43,8 @@ const signet = (function (moduleFactory) {
     signet.subtype('referencible')('Maybe', hasTypeName('Maybe'));
     signet.subtype('referencible')('Nothing', hasTypeName('Nothing'));
 
+    signet.subtype('referencible')('concatable', buildContractCheck('concat'));
+
     return signet;
 
 });

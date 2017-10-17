@@ -47,6 +47,7 @@ const fluentCore = (function (moduleFactory) {
             value.applyThrough = (args) => coreFunctions.applyThrough(value, args);
             value.callThrough = (...args) => coreFunctions.applyThrough(value, args);
             value.curry = (...args) => coreFunctions.curry.apply(null, value, args);
+            value.compose = (fn) => addCoreBehaviors(coreFunctions.compose(value, fn));
         }
 
         return value;

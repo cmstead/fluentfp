@@ -148,7 +148,9 @@ const coreFunctions = (function (moduleFactory) {
             'recursible:function => function',
             recur),
         slice: signet.enforce(
-            'values: variant<array, arguments> => array',
+            'start: leftBoundedInt<0>, end:[leftBoundedInt<0>] ' + 
+            '=> values: variant<array, arguments> ' + 
+            '=> array',
             slice),
         valueOf: signet.enforce(
             '* => *',
