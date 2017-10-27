@@ -33,6 +33,7 @@ const signet = (function (moduleFactory) {
                 && signet.isTypeOf(getSubtype(options[0]))(value.valueOf());
 
     signet.alias('fluentType', 'variant<type, function>');
+    signet.alias('defined', 'not<undefined>');
     signet.alias('referencible', 'not<variant<null, undefined>>');
 
     signet.subtype('referencible')('Transformable', buildContractCheck('transform'));
@@ -44,6 +45,7 @@ const signet = (function (moduleFactory) {
     signet.subtype('referencible')('Nothing', hasTypeName('Nothing'));
 
     signet.subtype('referencible')('concatable', buildContractCheck('concat'));
+    signet.subtype('referencible')('reducible', buildContractCheck('reduce'));
 
     return signet;
 

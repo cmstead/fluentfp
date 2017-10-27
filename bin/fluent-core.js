@@ -42,12 +42,16 @@ const fluentCore = (function (moduleFactory) {
 ) {
     'use strict';
 
+    const compose = coreFunctions.compose;
+
     function addCoreBehaviors(value) {
         if (corePredicates.isFunction(value)) {
             value.applyThrough = (args) => coreFunctions.applyThrough(value, args);
             value.callThrough = (...args) => coreFunctions.applyThrough(value, args);
+            value.callWith = (...args) => coreFunctions.apply(value, args);
             value.curry = (...args) => coreFunctions.curry.apply(null, value, args);
             value.compose = (fn) => addCoreBehaviors(coreFunctions.compose(value, fn));
+            value.pipelineTo = (fn) => addCoreBehaviors(compose(fn, value));
         }
 
         return value;

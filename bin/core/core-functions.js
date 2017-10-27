@@ -118,7 +118,6 @@ const coreFunctions = (function (moduleFactory) {
         return isReferencible(value) ? value.valueOf() : value;
     }
 
-
     return {
         apply: signet.enforce(
             'fn:function, args:variant<array, arguments> => *',

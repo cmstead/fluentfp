@@ -23,6 +23,7 @@ const fluentArray = (function (moduleFactory) {
     const isFunction = fluentCore.isFunction;
     const isAppendable = signet.isTypeOf('Appendable');
     const toTransformable = fluentCore.toTransformable;
+    const meither = fluentCore.meither;
 
     function reduceOverArray(operation, values, initialValue) {
         let result = initialValue;
@@ -40,7 +41,7 @@ const fluentArray = (function (moduleFactory) {
     }
 
     const first = (values) => values[0];
-    const rest = fluentCore.slice(0);
+    const rest = fluentCore.slice(1);
 
 
 
@@ -105,20 +106,50 @@ const fluentArray = (function (moduleFactory) {
         (base, appendee) =>
             applyToTransformable(applyAppend(base, appendee));
 
+    const reduce =
+        (operation, initialValue) =>
+            addCoreBehaviors((values) =>
+                reduceOverArray(
+                    operation,
+                    meither('defined', () => values, () => rest(values))(initialValue),
+                    meither('defined', () => initialValue, () => first(values))(initialValue)));
+
     return {
         append: signet.enforce(
             'base =: appendee, base =: result :: ' +
-            'base: variant<Appendable, concatable>, ' + 
+            'base: variant<Appendable, concatable>, ' +
             'appendee: variant<Appendable, concatable> ' +
             '=> result: variant<Appendable, concatable>',
             addCoreBehaviors(append)),
+
+        filter: signet.enforce(
+            'predicateFn:function<* => boolean> => values: array => array',
+            addCoreBehaviors(filter)),
+
+        first: signet.enforce(
+            'values:array => *',
+            first),
 
         map: signet.enforce(
             'operation:function => mappableValue: Mappable<*> => Mappable<*>',
             addCoreBehaviors(map)),
 
-        filter: signet.enforce(
-            'predicateFn:function<* => boolean> => values: array => array',
-            addCoreBehaviors(filter))
+        reduce: signet.enforce(
+            'operation:function<a:*, b:* => result:*>, ' +
+            'initialValue:[defined] ' +
+            '=> values:reducible ' + 
+            '=> *',
+            addCoreBehaviors(reduce)),
+
+        rest: signet.enforce(
+            'values:array => array',
+            rest),
+        
+        slice: signet.enforce(
+            'start <= end :: ' +
+            'start:leftBoundedInt<0>, end:int ' +
+            '=> values:array' +
+            '=> result:array',
+            fluentCore.slice)
     };
 });

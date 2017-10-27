@@ -30,6 +30,7 @@
         "corePredicates": false,
         "coreTransformable": false,
         "coreTypes": false,
-        "fluentCore": false
+        "fluentCore": false,
+        "fluentArray": false
     }
 }
